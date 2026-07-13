@@ -1,0 +1,19 @@
+{
+  "name": "skyclimb",
+  "version": "0.1.0",
+  "description": "Sky Climb — a real-time multiplayer platformer, built as a security-engineering case study (Security by Design / SSDLC).",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["security", "ssdlc", "multiplayer", "socket.io"],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "socket.io": "^4.8.3"
+  }
+}

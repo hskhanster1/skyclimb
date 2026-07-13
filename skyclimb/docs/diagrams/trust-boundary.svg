@@ -1,0 +1,62 @@
+<svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow3" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#c0392b"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="900" height="560" fill="#f7f8fa"/>
+  <text x="450" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a2744">Sky Climb — Trust Boundary</text>
+
+  <!-- UNTRUSTED ZONE -->
+  <rect x="40" y="70" width="360" height="440" rx="10" fill="#fdece8" stroke="#c0392b" stroke-width="2" stroke-dasharray="6,4"/>
+  <text x="220" y="98" text-anchor="middle" font-size="15" font-weight="bold" fill="#c0392b">UNTRUSTED — Client / Browser</text>
+  <text x="220" y="116" text-anchor="middle" font-size="10" fill="#c0392b" font-style="italic">Assume this can be modified, scripted, or replaced entirely</text>
+
+  <rect x="70" y="140" width="300" height="50" rx="6" fill="#ffffff" stroke="#c0392b" stroke-width="1.2"/>
+  <text x="220" y="170" text-anchor="middle" font-size="12" fill="#1a2744">Keyboard input capture</text>
+
+  <rect x="70" y="205" width="300" height="50" rx="6" fill="#ffffff" stroke="#c0392b" stroke-width="1.2"/>
+  <text x="220" y="235" text-anchor="middle" font-size="12" fill="#1a2744">Rendering (canvas draw)</text>
+
+  <rect x="70" y="270" width="300" height="50" rx="6" fill="#ffffff" stroke="#c0392b" stroke-width="1.2"/>
+  <text x="220" y="300" text-anchor="middle" font-size="12" fill="#1a2744">HUD display (score, timer text)</text>
+
+  <text x="220" y="350" text-anchor="middle" font-size="11" font-weight="bold" fill="#c0392b">A modified client could:</text>
+  <text x="220" y="370" text-anchor="middle" font-size="10" fill="#7a2418">• Send frame-perfect / bot-scripted input</text>
+  <text x="220" y="388" text-anchor="middle" font-size="10" fill="#7a2418">• Emit malformed or rapid-fire input events</text>
+  <text x="220" y="406" text-anchor="middle" font-size="10" fill="#7a2418">• Skip rendering entirely and just read state</text>
+  <text x="220" y="430" text-anchor="middle" font-size="11" font-weight="bold" fill="#1a6b3c">A modified client CANNOT:</text>
+  <text x="220" y="450" text-anchor="middle" font-size="10" fill="#0d4a29">• Change its own position, score, or height</text>
+  <text x="220" y="468" text-anchor="middle" font-size="10" fill="#0d4a29">• Alter the platform pattern or timer</text>
+  <text x="220" y="486" text-anchor="middle" font-size="10" fill="#0d4a29">• Declare itself the winner</text>
+
+  <!-- TRUSTED ZONE -->
+  <rect x="500" y="70" width="360" height="440" rx="10" fill="#e6f4ea" stroke="#1a6b3c" stroke-width="2"/>
+  <text x="680" y="98" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a6b3c">TRUSTED — Server</text>
+  <text x="680" y="116" text-anchor="middle" font-size="10" fill="#1a6b3c" font-style="italic">Sole authority for anything that affects the outcome</text>
+
+  <rect x="530" y="140" width="300" height="50" rx="6" fill="#ffffff" stroke="#1a6b3c" stroke-width="1.2"/>
+  <text x="680" y="170" text-anchor="middle" font-size="12" fill="#1a2744">Position &amp; physics (gravity, collision)</text>
+
+  <rect x="530" y="205" width="300" height="50" rx="6" fill="#ffffff" stroke="#1a6b3c" stroke-width="1.2"/>
+  <text x="680" y="235" text-anchor="middle" font-size="12" fill="#1a2744">Score / height calculation</text>
+
+  <rect x="530" y="270" width="300" height="50" rx="6" fill="#ffffff" stroke="#1a6b3c" stroke-width="1.2"/>
+  <text x="680" y="300" text-anchor="middle" font-size="12" fill="#1a2744">Timer &amp; win-condition logic</text>
+
+  <rect x="530" y="335" width="300" height="50" rx="6" fill="#ffffff" stroke="#1a6b3c" stroke-width="1.2"/>
+  <text x="680" y="365" text-anchor="middle" font-size="12" fill="#1a2744">Room membership &amp; slot assignment</text>
+
+  <text x="680" y="420" text-anchor="middle" font-size="10" fill="#0d4a29">Everything in this zone is computed here,</text>
+  <text x="680" y="438" text-anchor="middle" font-size="10" fill="#0d4a29">regardless of what the client claims or sends.</text>
+
+  <!-- Boundary crossing arrows -->
+  <line x1="400" y1="200" x2="500" y2="200" stroke="#c0392b" stroke-width="2.5" marker-end="url(#arrow3)"/>
+  <text x="450" y="188" text-anchor="middle" font-size="9" font-weight="bold" fill="#c0392b">{left, right, jump}</text>
+  <text x="450" y="215" text-anchor="middle" font-size="8" fill="#666" font-style="italic">only this crosses in</text>
+
+  <line x1="500" y1="260" x2="400" y2="260" stroke="#1a6b3c" stroke-width="2.5" marker-end="url(#arrow3)"/>
+  <text x="450" y="248" text-anchor="middle" font-size="9" font-weight="bold" fill="#1a6b3c">full game state (read-only)</text>
+  <text x="450" y="275" text-anchor="middle" font-size="8" fill="#666" font-style="italic">everything else, one-way</text>
+</svg>

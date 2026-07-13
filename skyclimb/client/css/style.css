@@ -1,0 +1,351 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root {
+  --p1-color: #4fd6ff;
+  --p2-color: #ff6fb0;
+  --bg: #0d0a1f;
+}
+
+* { box-sizing: border-box; }
+
+.hidden { display: none !important; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: #eae6ff;
+  font-family: 'Press Start 2P', monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 16px;
+  overflow: hidden;
+}
+
+h1 {
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: #cdbcff;
+  text-shadow: 0 0 8px rgba(150, 110, 255, 0.6);
+  margin: 0;
+}
+
+/* ============================================================
+   Mode select + online lobby
+   ============================================================ */
+#mode-select {
+  display: flex;
+  gap: 18px;
+}
+#mode-select.hidden { display: none; }
+
+#mode-select button {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  background: #1a1040;
+  color: #eae6ff;
+  border: 2px solid #4a3a80;
+  border-radius: 6px;
+  padding: 16px 22px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: 0.15s;
+}
+#mode-select button span {
+  font-size: 8px;
+  color: #9c8fcf;
+}
+#mode-select button:hover {
+  background: #2c2350;
+  border-color: #a88cff;
+  box-shadow: 0 0 14px rgba(111, 87, 201, 0.5);
+}
+
+#lobby {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  background: rgba(18, 8, 50, 0.5);
+  border: 2px solid #3a2d6b;
+  border-radius: 6px;
+  padding: 10px 14px;
+}
+#lobby.hidden { display: none; }
+#lobby input {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  background: #0b0318;
+  color: #eae6ff;
+  border: 2px solid #3a2d6b;
+  border-radius: 4px;
+  padding: 8px 10px;
+  width: 100px;
+}
+#lobby button {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  background: #2c2350;
+  color: #eae6ff;
+  border: 2px solid #6f57c9;
+  border-radius: 5px;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+#lobby button:hover { background: #3a2d6b; }
+#status { color: #ffe27a; white-space: nowrap; }
+#roomStatus { color: #9c8fcf; white-space: nowrap; }
+
+/* ============================================================
+   Stage + canvas
+   ============================================================ */
+#stage {
+  position: relative;
+  border: 3px solid #2c2350;
+  border-radius: 6px;
+  box-shadow: 0 0 0 4px #0d0a1f, 0 0 30px rgba(120, 80, 255, 0.35);
+  overflow: hidden;
+  background: #0b0318;
+}
+#stage:focus { outline: none; }
+
+canvas {
+  display: block;
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+
+/* ============================================================
+   CSS waterfall background scene
+   One shared layer spanning the full stage width so both
+   split-screen halves share the same continuous waterfalls.
+   ============================================================ */
+#scene-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Each waterfall is a full-height column animated with a
+   repeating gradient that scrolls downward — clean, glowing,
+   no canvas overhead. Positions mirror the inspo art layout. */
+.waterfall {
+  position: absolute;
+  top: -4%;
+  bottom: -4%;
+  width: 28px;
+  border-radius: 6px;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(230, 252, 255, 0.92) 0px,
+    rgba(160, 228, 255, 0.55) 14px,
+    rgba(100, 195, 255, 0.28) 28px,
+    rgba(160, 228, 255, 0.55) 42px,
+    rgba(230, 252, 255, 0.92) 56px
+  );
+  background-size: 100% 56px;
+  filter:
+    drop-shadow(0 0 7px rgba(100, 210, 255, 0.6))
+    drop-shadow(0 0 18px rgba(60, 160, 255, 0.3));
+  animation: waterFlow 0.85s linear infinite;
+}
+
+/* Bright inner core stream */
+.waterfall::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  left: 33%;
+  right: 33%;
+  background: rgba(240, 254, 255, 0.5);
+  filter: blur(1px);
+}
+
+@keyframes waterFlow {
+  from { background-position-y: 0; }
+  to   { background-position-y: 56px; }
+}
+
+/* Symmetric placement — each column pair mirrors across the 50% seam
+   so they read as one connected scene across both halves */
+.wf-1 { left:  12%; }
+.wf-2 { left:  35%; }
+.wf-3 { left:  65%; }
+.wf-4 { left:  88%; }
+
+/* ============================================================
+   HUD — P1 score | timer | P2 score in a row across the top
+   ============================================================ */
+#hud {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 5;
+  padding: 10px 12px;
+  gap: 8px;
+}
+
+.hud-player {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hud-player.p1 { align-items: flex-start; }
+.hud-player.p2 { align-items: flex-end; }
+
+.player-label {
+  font-size: 9px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: rgba(10, 8, 30, 0.6);
+  border: 2px solid currentColor;
+}
+.hud-player.p1 .player-label { color: var(--p1-color); }
+.hud-player.p2 .player-label { color: var(--p2-color); }
+
+.height-score {
+  font-size: 18px;
+  background: rgba(10, 8, 30, 0.6);
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: 2px solid currentColor;
+  min-width: 80px;
+  text-align: center;
+}
+.hud-player.p1 .height-score { color: var(--p1-color); }
+.hud-player.p2 .height-score { color: var(--p2-color); }
+
+#timer-display {
+  font-size: 15px;
+  color: #ffe27a;
+  text-shadow: 0 0 12px rgba(255, 210, 90, 0.65);
+  background: rgba(10, 8, 30, 0.6);
+  border: 2px solid rgba(255, 210, 90, 0.4);
+  border-radius: 5px;
+  padding: 6px 14px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  align-self: center;
+  transition: color 0.3s;
+}
+
+/* ============================================================
+   Start / game-over overlay
+   ============================================================ */
+#start-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 6, 22, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  cursor: pointer;
+}
+#start-overlay.hidden { display: none; }
+
+#start-text {
+  font-size: 16px;
+  text-align: center;
+  color: #fff;
+  line-height: 2;
+  text-shadow: 0 0 10px rgba(150, 110, 255, 0.9);
+}
+#start-text span {
+  display: block;
+  font-size: 9px;
+  color: #cdbcff;
+  margin-top: 8px;
+}
+
+/* ============================================================
+   Controls row below stage
+   ============================================================ */
+#controls-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-size: 9px;
+  color: #9c8fcf;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.key-hint { color: #9c8fcf; }
+kbd {
+  display: inline-block;
+  background: #1a1040;
+  border: 1px solid #4a3a80;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: #cdbcff;
+  margin: 0 1px;
+}
+
+/* Timer section: duration picker + restart */
+#timer-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: rgba(18, 8, 50, 0.5);
+  padding: 8px 14px 10px;
+  border-radius: 6px;
+  border: 2px solid #3a2d6b;
+}
+
+#timer-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.timer-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  background: #1a0f38;
+  color: #9c8fcf;
+  border: 2px solid #3a2d6b;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: 0.1s;
+}
+.timer-btn:hover {
+  background: #2c2350;
+  color: #eae6ff;
+  border-color: #6f57c9;
+}
+.timer-btn.active {
+  background: #6f57c9;
+  color: #fff;
+  border-color: #a88cff;
+  box-shadow: 0 0 12px rgba(111, 87, 201, 0.6);
+}
+
+#restartBtn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  background: #2c2350;
+  color: #eae6ff;
+  border: 2px solid #6f57c9;
+  border-radius: 5px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+#restartBtn:hover  { background: #3a2d6b; }
+#restartBtn:active { transform: translateY(1px); }
