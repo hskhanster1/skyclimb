@@ -1,0 +1,28 @@
+# Lessons Learned
+
+**Status:** Phase 10 retrospective, covering Phases 1–9
+
+## What went well
+
+**Server authority, decided early, kept paying off.** The Phase 4 decision to make the server the sole authority for position, physics, score, and win conditions — before any security-specific phase had even started — turned out to be the single highest-leverage decision in the whole project. It's the reason the Phase 5 "can the client cheat?" audit had fast, confident answers instead of a long list of open questions, and the reason Phase 9's adversarial testing found nothing to exploit in that category at all. Good architecture decisions made for ordinary engineering reasons often turn out to be good security decisions too — they weren't separable in practice.
+
+**Treating documentation as something the codebase gets checked against, not narrated for.** The Risk Register and Security Requirements were written by looking at what the code actually does and asking "does this hold?" rather than writing aspirational documentation first. This is why Software Requirements.md and Security Requirements.md both ended their own write-up with a "gaps found" section — writing the requirement *after* the system existed made it possible to notice what was never actually specified (concurrent room limits, token-in-transit protection), which is a real and useful failure mode to have caught on paper rather than never.
+
+**Distinguishing verification from adversarial testing.** This is the project's clearest lesson, not just a phase outcome. Phase 8 confirmed every control did what it was designed to do. Phase 9 — a genuinely different exercise, not a repeat of Phase 8 with extra steps — found two severe bugs (R11, R12) that Phase 8's cooperative tests never could have found, because they were built to test the scenario the control was designed for, not the scenarios adjacent to it.
+
+## What was challenging
+
+**Keeping the phased plan honest under pressure to just fix things.** When R1 turned up in Phase 5, and again when R11/R12 turned up in Phase 9, the instinct was to fix immediately — and twice, that was the right call (SD-001, SD-002, SD-003 all document why). But that instinct needed a real justification each time (severity, likelihood, cost), not just impatience, or the phased structure would have quietly collapsed into "fix everything the moment it's found," which defeats the point of having phases at all. Writing the Security Decisions log was as much about disciplining that instinct as it was about producing a portfolio artifact.
+
+**Server code stayed a single file longer than felt comfortable.** The Component Diagram in Phase 6 named this explicitly rather than fixing it immediately, on the reasoning that splitting `server.js` into modules would pay off more once there were more distinct concerns to separate (Phase 8's controls). In hindsight, that reasoning held — by Phase 9, the file had grown enough that a future pass genuinely would benefit from separating the room manager, physics engine, and socket handlers into their own modules. That refactor is now a clear, justified next step rather than a vague "someday" item.
+
+**Reconnection logic was more subtle to get right than it first appeared.** The naive version (null the slot immediately on disconnect) was simple and wrong for anything beyond a hard crash — a brief WiFi drop would end an otherwise-fine match. The grace-period-plus-token version is correct but has more moving parts (pending-disconnect timers, token matching, room state that has to stay coherent across a socket swap), and it directly created R12 (the ghost-slot bug) as a side effect of that added complexity. More capability came with more surface area to get wrong — worth remembering next time "just add a grace period" sounds like a small change.
+
+## What would be done differently
+
+- **Write Security Requirements *before* Phase 5, not after Phase 9.** Doing it retrospectively in Phase 10 was useful for finding gaps, but a real project would want those requirements guiding implementation from the start, not just checking it afterward.
+- **Add adversarial "what if this event fires with a malformed payload" testing as a standing checklist for every new socket event**, rather than something that only happened once, comprehensively, in Phase 9. R11 existed from the moment the `join` handler was first written in Phase 2 — it sat undetected through Phases 3, 4, 5, 6, 7, and 8 before Phase 9 found it. Any handler added after this point should get that check immediately, not wait for a dedicated testing phase to come back around.
+
+## Takeaways for the broader goal
+
+This project's stated purpose was never really "build a multiplayer game" — it was to generate honest, defensible evidence of security engineering judgement: architecture decisions with stated trade-offs, a risk register that actually gets revised as new information arrives, a threat model that STRIDE-formalizes rather than replaces earlier findings, and a testing phase that found real bugs instead of confirming what was already believed. The R11/R12 story in particular is the kind of finding that's more convincing in an interview than a project with zero bugs ever could be — it shows the process working, not just the output looking clean.

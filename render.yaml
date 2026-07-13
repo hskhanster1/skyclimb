@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: skyclimb
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: ALLOWED_ORIGIN
+        # Set this to your deployed URL once Render assigns it, e.g.
+        # https://skyclimb.onrender.com — see docs/Deployment Guide.md
+        value: "*"
+    healthCheckPath: /
