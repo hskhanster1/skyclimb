@@ -181,22 +181,30 @@ function updatePlayer(p, keys, jumpQueued) {
 // ---------- Game State ----------
 const rooms = {};
 
-function getRoom(roomId) {
+const VALID_TIMER_DURATIONS = [0, 30, 60]; // 0 = unlimited
+
+function getRoom(roomId, requestedDuration) {
   if (!rooms[roomId]) {
+    const duration = VALID_TIMER_DURATIONS.includes(requestedDuration) ? requestedDuration : 60;
     rooms[roomId] = {
       players: [null, null], // index 0 = P1, index 1 = P2
       tokens: [null, null],  // R3 — per-slot reconnection secret
       pendingDisconnect: [null, null], // R3 — grace-period timers
       keys: [{ left: false, right: false }, { left: false, right: false }],
       jumpQueued: [false, false],
-      timeLeft: 60,
-      timerDuration: 60,
+      timeLeft: duration,
+      timerDuration: duration, // set once by whoever creates the room; later joiners can't change it mid-match
       gameActive: false,
       gameEnded: false,
       pattern: [],
       winner: null,
     };
-    // Copy the global pattern or reseed
+    // Each room gets its own freshly-randomized starting pattern — reseed
+    // the shared generator (fresh Math.random() calls) rather than reusing
+    // whatever was seeded once at server startup, which was previously
+    // being copied identically into every room (every online match had the
+    // same initial ~40-70m layout as a result).
+    seedPattern();
     rooms[roomId].pattern = JSON.parse(JSON.stringify(pattern));
   }
   return rooms[roomId];
@@ -225,54 +233,58 @@ function maybeCleanupRoom(roomId) {
 setInterval(() => {
   for (const roomId in rooms) {
     const room = rooms[roomId];
-    if (!room.gameActive || room.gameEnded) continue;
+    if (!room.gameActive) continue; // paused (reconnect grace) or already fully ended
 
     // 1. Timer
+    let justEnded = false;
     if (room.timerDuration !== 0) {
       room.timeLeft -= 1 / 60;
       if (room.timeLeft <= 0) {
         room.timeLeft = 0;
         room.gameActive = false;
         room.gameEnded = true;
+        justEnded = true;
         // Determine winner
-        const p1 = room.players[0];
-        const p2 = room.players[1];
-        if (p1 && p2) {
-          if (p1.height > p2.height) room.winner = 0;
-          else if (p2.height > p1.height) room.winner = 1;
+        const p1e = room.players[0];
+        const p2e = room.players[1];
+        if (p1e && p2e) {
+          if (p1e.height > p2e.height) room.winner = 0;
+          else if (p2e.height > p1e.height) room.winner = 1;
           else room.winner = -1; // draw
         }
         logEvent('match_ended', { roomId, winner: room.winner, reason: 'timer' });
-        continue;
       }
     }
 
-    // 2. Physics for both players
+    // 2. Physics for both players (skipped on the tick the match just ended)
     const p1 = room.players[0];
     const p2 = room.players[1];
     if (!p1 || !p2) continue;
 
-    // Ensure platforms generate above
-    const minY = Math.min(p1.y, p2.y);
-    if (room.pattern.length > 0) {
-      while (room.pattern[room.pattern.length - 1].y > minY - 600) {
-        const last = room.pattern[room.pattern.length - 1];
-        const dy = 58 + Math.random() * 50;
-        const y = last.y - dy;
-        const frac = clamp(last.frac + (Math.random() - 0.5) * 0.85, 0.1, 0.9);
-        room.pattern.push({ y, frac, crystal: Math.random() < 0.2 });
+    if (!justEnded) {
+      // Ensure platforms generate above
+      const minY = Math.min(p1.y, p2.y);
+      if (room.pattern.length > 0) {
+        while (room.pattern[room.pattern.length - 1].y > minY - 600) {
+          const last = room.pattern[room.pattern.length - 1];
+          const dy = 58 + Math.random() * 50;
+          const y = last.y - dy;
+          const frac = clamp(last.frac + (Math.random() - 0.5) * 0.85, 0.1, 0.9);
+          room.pattern.push({ y, frac, crystal: Math.random() < 0.2 });
+        }
       }
+
+      // Update P1
+      updatePlayer(p1, room.keys[0], room.jumpQueued[0]);
+      room.jumpQueued[0] = false;
+
+      // Update P2
+      updatePlayer(p2, room.keys[1], room.jumpQueued[1]);
+      room.jumpQueued[1] = false;
     }
 
-    // Update P1
-    updatePlayer(p1, room.keys[0], room.jumpQueued[0]);
-    room.jumpQueued[0] = false;
-
-    // Update P2
-    updatePlayer(p2, room.keys[1], room.jumpQueued[1]);
-    room.jumpQueued[1] = false;
-
-    // 3. Broadcast state to room
+    // 3. Broadcast state to room — this now ALSO fires on the tick the
+    // match just ended, which is the one that was previously being skipped
     io.to(roomId).emit('state', {
       p1: { x: p1.x, y: p1.y, facing: p1.facing, height: p1.height },
       p2: { x: p2.x, y: p2.y, facing: p2.facing, height: p2.height },
@@ -338,7 +350,7 @@ io.on('connection', (socket) => {
       playerIndex = -1;
     }
 
-    const room = getRoom(roomId);
+    const room = getRoom(roomId, payload && payload.timerDuration);
 
     // R3 — attempt to reclaim a slot within the reconnection grace period
     if (typeof token === 'string') {
@@ -352,7 +364,7 @@ io.on('connection', (socket) => {
           clearTimeout(joinTimeoutHandle);
 
           socket.join(roomId);
-          socket.emit('assigned', { player: i, token });
+          socket.emit('assigned', { player: i, token, timerDuration: room.timerDuration });
           logEvent('reconnected', { roomId, player: i, socketId: socket.id });
 
           if (room.players[0] !== null && room.players[1] !== null) {
@@ -386,7 +398,7 @@ io.on('connection', (socket) => {
     room.jumpQueued[idx] = false;
 
     socket.join(roomId);
-    socket.emit('assigned', { player: idx, token: newToken });
+    socket.emit('assigned', { player: idx, token: newToken, timerDuration: room.timerDuration });
     logEvent('joined', { roomId, player: idx, socketId: socket.id });
     broadcastRoomStatus(roomId);
 

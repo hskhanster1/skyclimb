@@ -349,3 +349,16 @@ kbd {
 }
 #restartBtn:hover  { background: #3a2d6b; }
 #restartBtn:active { transform: translateY(1px); }
+
+#menuBtn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  background: #2c2350;
+  color: #eae6ff;
+  border: 2px solid #6f57c9;
+  border-radius: 5px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+#menuBtn:hover  { background: #3a2d6b; }
+#menuBtn:active { transform: translateY(1px); }

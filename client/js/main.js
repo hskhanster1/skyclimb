@@ -11,6 +11,7 @@
   const timerBtns  = document.querySelectorAll('.timer-btn');
   const timerSection = document.getElementById('timer-section');
   const controlsRow = document.getElementById('controls-row');
+  const menuBtn = document.getElementById('menuBtn');
 
   const modeSelect   = document.getElementById('mode-select');
   const localModeBtn = document.getElementById('localModeBtn');
@@ -76,6 +77,32 @@
   // ================================================================
   // MODE SELECT
   // ================================================================
+  function goToMenu() {
+    // Tear down whatever mode we were in and return to the title screen
+    if (MODE === 'online' && socket) {
+      socket.disconnect();
+      socket = null;
+    }
+    netState = null;
+    playerIndex = -1;
+    myToken = null; // abandoning this session entirely — don't try to reconnect into it later
+    gameActive = false;
+    gameEnded = false;
+    p1 = null; p2 = null;
+
+    MODE = null;
+    stage.classList.add('hidden');
+    controlsRow.classList.add('hidden');
+    lobby.classList.add('hidden');
+    startOverlay.classList.add('hidden');
+    roomStatusEl.classList.add('hidden');
+    roomStatusEl.textContent = '';
+    statusEl.textContent = '● Not connected';
+    statusEl.style.color = '';
+    modeSelect.classList.remove('hidden');
+  }
+  menuBtn.addEventListener('click', goToMenu);
+
   localModeBtn.addEventListener('click', () => {
     MODE = 'local';
     modeSelect.classList.add('hidden');
@@ -95,7 +122,7 @@
     modeSelect.classList.add('hidden');
     lobby.classList.remove('hidden');
     controlsRow.classList.remove('hidden');
-    timerSection.classList.add('hidden'); // duration picker isn't wired to the server yet
+    timerSection.classList.remove('hidden'); // pick a duration before connecting
     stage.classList.remove('hidden');
     localHints.forEach(el => el.classList.add('hidden'));
     onlineHints.forEach(el => el.classList.remove('hidden'));
@@ -107,15 +134,27 @@
   // ================================================================
   // LOCAL MODE
   // ================================================================
-  let TIMER_DURATION = 60;
+  let TIMER_DURATION = 60;        // local mode
+  let ONLINE_TIMER_DURATION = 60; // online mode — only takes effect for whoever creates the room
   timerBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       timerBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      TIMER_DURATION = parseInt(btn.dataset.duration, 10);
-      if (MODE === 'local') restartLocal();
+      const duration = parseInt(btn.dataset.duration, 10);
+      if (MODE === 'local') {
+        TIMER_DURATION = duration;
+        restartLocal();
+      } else if (MODE === 'online') {
+        ONLINE_TIMER_DURATION = duration;
+      }
     });
   });
+
+  function syncTimerButtonUI(duration) {
+    timerBtns.forEach(b => {
+      b.classList.toggle('active', parseInt(b.dataset.duration, 10) === duration);
+    });
+  }
 
   let timeLeft   = TIMER_DURATION;
   let gameActive = false;
@@ -164,6 +203,16 @@
   let onlineKeys = { left: false, right: false };
   let onlineJump = false;
 
+  // Smoothed render positions for online mode. The server only sends a new
+  // state ~60 times/sec over a real network with variable latency and
+  // jitter — rendering the raw values directly makes movement look jerky
+  // or briefly "teleport," which can look like falling through a platform
+  // even though the server's own physics never actually got it wrong.
+  // Lerping toward each new value instead of snapping to it smooths that
+  // out. `null` means "snap immediately" (used right when a match starts).
+  let smooth1 = null, smooth2 = null;
+  const SMOOTH_FACTOR = 0.35;
+
   function sendInput() {
     if (socket && socket.connected && playerIndex !== -1) {
       socket.emit('input', { left: onlineKeys.left, right: onlineKeys.right, jump: onlineJump });
@@ -188,13 +237,18 @@
       statusEl.style.color = '#4fd6ff';
       // If we have a token from a previous slot in this room, the server
       // will use it to reclaim that slot if we're still within the grace
-      // period; otherwise it's ignored and we join fresh.
-      socket.emit('join', { roomId, token: myToken });
+      // period; otherwise it's ignored and we join fresh. timerDuration is
+      // only honored if we're the one creating the room — see server.js.
+      socket.emit('join', { roomId, token: myToken, timerDuration: ONLINE_TIMER_DURATION });
     });
 
-    socket.on('assigned', ({ player, token }) => {
+    socket.on('assigned', ({ player, token, timerDuration }) => {
       playerIndex = player;
       myToken = token;
+      if (typeof timerDuration === 'number') {
+        ONLINE_TIMER_DURATION = timerDuration; // reflect the room's actual setting
+        syncTimerButtonUI(timerDuration);       // e.g. if the other player already set 30s
+      }
       statusEl.textContent = `● You are Player ${player + 1}`;
       statusEl.style.color = '#2de8b0';
       startText.innerHTML = `WAITING FOR PLAYER ${player === 0 ? 2 : 1}...`;
@@ -224,6 +278,7 @@
     socket.on('gameStart', () => {
       startOverlay.classList.add('hidden');
       netCam1 = -HEIGHT * 0.62; netCam2 = -HEIGHT * 0.62;
+      smooth1 = null; smooth2 = null; // snap to correct position on the first frame of the new match
       stage.focus();
     });
 
@@ -344,16 +399,26 @@
 
     } else if (MODE === 'online' && netState) {
       const scaleX = (COL_W - PLAYER_W) / (SERVER_COL_W - PLAYER_W);
-      const rp1 = { x: netState.p1.x * scaleX, y: netState.p1.y, facing: netState.p1.facing };
-      const rp2 = { x: netState.p2.x * scaleX, y: netState.p2.y, facing: netState.p2.facing };
+      const target1 = { x: netState.p1.x * scaleX, y: netState.p1.y, facing: netState.p1.facing };
+      const target2 = { x: netState.p2.x * scaleX, y: netState.p2.y, facing: netState.p2.facing };
+
+      if (!smooth1) smooth1 = { ...target1 };
+      if (!smooth2) smooth2 = { ...target2 };
+      smooth1.x += (target1.x - smooth1.x) * SMOOTH_FACTOR;
+      smooth1.y += (target1.y - smooth1.y) * SMOOTH_FACTOR;
+      smooth1.facing = target1.facing; // no need to smooth a direction flip
+      smooth2.x += (target2.x - smooth2.x) * SMOOTH_FACTOR;
+      smooth2.y += (target2.y - smooth2.y) * SMOOTH_FACTOR;
+      smooth2.facing = target2.facing;
+
       pattern = netState.pattern; // world.js's shared `pattern` var — drawColumn reads it directly
 
-      netCam1 = updateCamera(netCam1, rp1);
-      netCam2 = updateCamera(netCam2, rp2);
+      netCam1 = updateCamera(netCam1, smooth1);
+      netCam2 = updateCamera(netCam2, smooth2);
 
       ctx.clearRect(0, 0, WIDTH, HEIGHT);
-      drawColumn(0,     netCam1, rp1, '#4fd6ff', '#2fb8e8');
-      drawColumn(COL_W, netCam2, rp2, '#ff6fb0', '#e84f95');
+      drawColumn(0,     netCam1, smooth1, '#4fd6ff', '#2fb8e8');
+      drawColumn(COL_W, netCam2, smooth2, '#ff6fb0', '#e84f95');
       drawDivider();
 
       score1El.textContent = netState.p1.height + 'm';
