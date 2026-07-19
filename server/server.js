@@ -79,6 +79,7 @@ const MOVE_MAX = 4.3;
 const FRICTION = 0.84;
 const GROUND_Y = 0;
 const COL_W = 400; // fixed logical width; client scales this to fit the canvas
+const MAX_FALL_SPEED = 14; // Capped at platform height to prevent collision ghosting (R12)
 
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 function platformX(frac) { return frac * (COL_W - PLATFORM_W); }
@@ -137,6 +138,9 @@ function updatePlayer(p, keys, jumpQueued) {
   p.vx = clamp(p.vx, -MOVE_MAX, MOVE_MAX);
 
   p.vy += GRAVITY;
+  // Prevent ghosting through platforms at high speeds
+  if (p.vy > MAX_FALL_SPEED) p.vy = MAX_FALL_SPEED;
+  
   const prevFootY = p.y + PLAYER_H / 2;
 
   p.x += p.vx;
