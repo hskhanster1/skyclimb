@@ -26,6 +26,13 @@
 
   window.ctx = ctxLocal;
 
+  // ---------------------------------------------------------------
+  // Helper to generate a unique room code for public demos
+  // ---------------------------------------------------------------
+  function generateRoomCode() {
+      return Math.random().toString(36).substring(2, 6).toUpperCase();
+  }
+
   // 'local' or 'online' — set once the player picks a mode on the title screen
   let MODE = null;
 
@@ -44,6 +51,14 @@
   }
   window.addEventListener('resize', resize);
   resize();
+
+  // Auto-generate and fill the room code when the page loads
+  document.addEventListener('DOMContentLoaded', () => {
+      const roomInput = document.getElementById('roomInput');
+      if (roomInput) {
+          roomInput.value = generateRoomCode();
+      }
+  });
 
   // ---------- shared camera helper (used by both modes) ----------
   function updateCamera(camPrev, p) {
@@ -297,7 +312,13 @@
     socket.on('error', (msg) => {
       statusEl.textContent = msg;
       statusEl.style.color = '#ff6fb0';
-      alert(msg);
+      alert(`Error: ${msg}. Please try a different room code.`);
+      
+      // Automatically generate a fresh code for them so they don't get stuck trying a full room
+      const roomInput = document.getElementById('roomInput');
+      if (roomInput) {
+          roomInput.value = generateRoomCode();
+      }
     });
 
     socket.on('disconnect', () => {
