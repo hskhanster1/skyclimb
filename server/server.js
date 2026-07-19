@@ -79,7 +79,7 @@ const MOVE_MAX = 4.3;
 const FRICTION = 0.84;
 const GROUND_Y = 0;
 const COL_W = 400; // fixed logical width; client scales this to fit the canvas
-const MAX_FALL_SPEED = 14; // Capped at platform height to prevent collision ghosting (R12)
+const MAX_FALL_SPEED = 14; // <--- CRITICAL FIX: Caps falling speed to exactly the height of a platform, so you NEVER ghost through.
 
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 function platformX(frac) { return frac * (COL_W - PLATFORM_W); }
@@ -138,7 +138,7 @@ function updatePlayer(p, keys, jumpQueued) {
   p.vx = clamp(p.vx, -MOVE_MAX, MOVE_MAX);
 
   p.vy += GRAVITY;
-  // Prevent ghosting through platforms at high speeds
+  // <--- THIS STOPS THE GHOSTING
   if (p.vy > MAX_FALL_SPEED) p.vy = MAX_FALL_SPEED;
   
   const prevFootY = p.y + PLAYER_H / 2;
@@ -203,11 +203,6 @@ function getRoom(roomId, requestedDuration) {
       pattern: [],
       winner: null,
     };
-    // Each room gets its own freshly-randomized starting pattern — reseed
-    // the shared generator (fresh Math.random() calls) rather than reusing
-    // whatever was seeded once at server startup, which was previously
-    // being copied identically into every room (every online match had the
-    // same initial ~40-70m layout as a result).
     seedPattern();
     rooms[roomId].pattern = JSON.parse(JSON.stringify(pattern));
   }
@@ -237,9 +232,8 @@ function maybeCleanupRoom(roomId) {
 setInterval(() => {
   for (const roomId in rooms) {
     const room = rooms[roomId];
-    if (!room.gameActive) continue; // paused (reconnect grace) or already fully ended
+    if (!room.gameActive) continue;
 
-    // 1. Timer
     let justEnded = false;
     if (room.timerDuration !== 0) {
       room.timeLeft -= 1 / 60;
@@ -248,25 +242,22 @@ setInterval(() => {
         room.gameActive = false;
         room.gameEnded = true;
         justEnded = true;
-        // Determine winner
         const p1e = room.players[0];
         const p2e = room.players[1];
         if (p1e && p2e) {
           if (p1e.height > p2e.height) room.winner = 0;
           else if (p2e.height > p1e.height) room.winner = 1;
-          else room.winner = -1; // draw
+          else room.winner = -1;
         }
         logEvent('match_ended', { roomId, winner: room.winner, reason: 'timer' });
       }
     }
 
-    // 2. Physics for both players (skipped on the tick the match just ended)
     const p1 = room.players[0];
     const p2 = room.players[1];
     if (!p1 || !p2) continue;
 
     if (!justEnded) {
-      // Ensure platforms generate above
       const minY = Math.min(p1.y, p2.y);
       if (room.pattern.length > 0) {
         while (room.pattern[room.pattern.length - 1].y > minY - 600) {
@@ -278,17 +269,13 @@ setInterval(() => {
         }
       }
 
-      // Update P1
       updatePlayer(p1, room.keys[0], room.jumpQueued[0]);
       room.jumpQueued[0] = false;
 
-      // Update P2
       updatePlayer(p2, room.keys[1], room.jumpQueued[1]);
       room.jumpQueued[1] = false;
     }
 
-    // 3. Broadcast state to room — this now ALSO fires on the tick the
-    // match just ended, which is the one that was previously being skipped
     io.to(roomId).emit('state', {
       p1: { x: p1.x, y: p1.y, facing: p1.facing, height: p1.height },
       p2: { x: p2.x, y: p2.y, facing: p2.facing, height: p2.height },
@@ -309,7 +296,6 @@ io.on('connection', (socket) => {
   let playerIndex = -1;
   let hasJoined = false;
 
-  // R10 — a socket that never joins a room shouldn't hold a connection open forever
   const joinTimeoutHandle = setTimeout(() => {
     if (!hasJoined) {
       logEvent('join_timeout_disconnect', { socketId: socket.id });
@@ -321,22 +307,16 @@ io.on('connection', (socket) => {
    try {
     const { roomId, token } = payload || {};
 
-    // R2 — rate limit join attempts per socket
     if (joinRateLimited(socket._joinRate || (socket._joinRate = {}))) {
       socket.emit('error', 'Too many join attempts — please slow down');
       return;
     }
 
-    // R6 — validate roomId shape before using it as a key/room name
     if (typeof roomId !== 'string' || !ROOM_ID_REGEX.test(roomId)) {
       socket.emit('error', 'Invalid room code (letters, numbers, - and _ only, max 32 chars)');
       return;
     }
 
-    // SD-003 — a socket that calls join() again without disconnecting from
-    // its previous room must not leave a ghost slot occupied there forever
-    // (this silently bypassed the R1 room-cleanup fix). Free the old slot
-    // first, exactly as if it had disconnected from that room.
     if (currentRoom && currentRoom !== roomId && playerIndex !== -1) {
       const oldRoom = rooms[currentRoom];
       if (oldRoom) {
@@ -356,7 +336,6 @@ io.on('connection', (socket) => {
 
     const room = getRoom(roomId, payload && payload.timerDuration);
 
-    // R3 — attempt to reclaim a slot within the reconnection grace period
     if (typeof token === 'string') {
       for (let i = 0; i < 2; i++) {
         if (room.tokens[i] === token && room.pendingDisconnect[i]) {
@@ -372,7 +351,7 @@ io.on('connection', (socket) => {
           logEvent('reconnected', { roomId, player: i, socketId: socket.id });
 
           if (room.players[0] !== null && room.players[1] !== null) {
-            room.gameActive = true; // resume — position/score are untouched
+            room.gameActive = true;
             io.to(roomId).emit('opponentReconnected', { player: i });
           }
           broadcastRoomStatus(roomId);
@@ -381,7 +360,6 @@ io.on('connection', (socket) => {
       }
     }
 
-    // Normal fresh join — assign the next free slot
     let idx;
     if (room.players[0] === null) idx = 0;
     else if (room.players[1] === null) idx = 1;
@@ -406,7 +384,6 @@ io.on('connection', (socket) => {
     logEvent('joined', { roomId, player: idx, socketId: socket.id });
     broadcastRoomStatus(roomId);
 
-    // If both players are present, start the game
     if (room.players[0] !== null && room.players[1] !== null) {
       room.gameActive = true;
       room.gameEnded = false;
@@ -416,26 +393,21 @@ io.on('connection', (socket) => {
       logEvent('match_started', { roomId });
     }
    } catch (err) {
-     // Defense-in-depth (SD-002): one malformed packet must never take down
-     // the process for every other player in every other room.
      console.error('[join handler error]', err);
      logEvent('handler_error', { event: 'join', socketId: socket.id, error: err.message });
      socket.emit('error', 'Invalid request');
    }
   });
 
-  // Input handling
   socket.on('input', (payload) => {
    try {
     if (playerIndex === -1 || !currentRoom) return;
 
-    // R2 — rate limit input events per socket
     if (inputRateLimited(socket._inputRate || (socket._inputRate = {}))) return;
 
     const room = getRoom(currentRoom);
     if (!room.gameActive) return;
 
-    // R4 — coerce to booleans rather than trusting the payload's shape
     const left = (payload && payload.left) === true;
     const right = (payload && payload.right) === true;
     const jump = (payload && payload.jump) === true;
@@ -449,19 +421,13 @@ io.on('connection', (socket) => {
    }
   });
 
-  // An explicit, in-place restart, distinct from a reconnect. Clicking
-  // "Restart" mid-match previously tore the socket down and reconnected
-  // with the saved token, which the server correctly (but unhelpfully)
-  // interpreted as "resume my paused match," leaving players in the same
-  // spot with the same platforms. This resets the room directly instead,
-  // with no disconnect involved at all.
   socket.on('restartMatch', () => {
    try {
     if (playerIndex === -1 || !currentRoom) return;
     const room = rooms[currentRoom];
     if (!room) return;
 
-    seedPattern(); // fresh, genuinely random layout — same fix as the pattern-seeding fix, applied per restart too
+    seedPattern();
     room.pattern = JSON.parse(JSON.stringify(pattern));
     if (room.players[0]) room.players[0] = freshPlayer();
     if (room.players[1]) room.players[1] = freshPlayer();
@@ -491,8 +457,6 @@ io.on('connection', (socket) => {
       const idx = playerIndex;
 
       if (wasActive) {
-        // R3 — give the player a grace period to reconnect before treating
-        // this as a real departure. Position/score are left untouched.
         room.gameActive = false;
         io.to(currentRoom).emit('opponentPaused', {
           player: idx,
@@ -512,7 +476,6 @@ io.on('connection', (socket) => {
           }, RECONNECT_GRACE_MS),
         };
       } else {
-        // Wasn't mid-match (e.g. still in the lobby) — free the slot now
         room.players[idx] = null;
         room.tokens[idx] = null;
         room.keys[idx] = { left: false, right: false };
@@ -528,10 +491,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// SD-002 — last-resort safety net. Per-handler try/catch above is the real
-// fix; this exists purely so an unforeseen exception type logs loudly and
-// the process keeps serving other rooms, instead of one bad packet from one
-// player silently ending the match for everyone on the server.
 process.on('uncaughtException', (err) => {
   console.error('[uncaughtException — process kept alive]', err);
   try {
@@ -541,7 +500,7 @@ process.on('uncaughtException', (err) => {
   }
 });
 
-const PORT = process.env.PORT || 3000; // Render/Railway/Fly.io assign this dynamically
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
