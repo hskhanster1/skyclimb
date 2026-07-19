@@ -3,7 +3,7 @@
 **Status:** Phase 6 (Security Architecture)
 **Scope:** Sky Climb's client-server design as of the completed networking + Phase 5 remediation work.
 
-This document captures how Sky Climb is actually built, with an emphasis on the decisions that matter for security — where trust boundaries sit, what data crosses them, and where authority for game-critical logic lives. Diagrams are in `docs/diagrams/` as standalone SVGs; each is explained below.
+This document captures how Sky Climb is actually built, with an emphasis on the decisions that matter for security: where the trust boundaries sit, what data crosses them, and where authority for game-critical logic actually lives. Diagrams live in `docs/diagrams/` as standalone SVGs, and each one gets explained below.
 
 ---
 
@@ -49,7 +49,7 @@ The server, by contrast, is still one file. The logical components are there (Ex
 
 ![Network diagram](diagrams/network-diagram.svg)
 
-Currently local-only for development; this diagram describes the target shape for Phase 11. One thing worth noting now, ahead of that phase: room state lives entirely in the Node process's memory (`rooms{}`), not in an external database. That's fine for a single-instance deployment, but it's a constraint worth stating explicitly here — it means the deployment can't be horizontally scaled across multiple server instances without also adding shared state (e.g. Redis) for room data, since two instances wouldn't see each other's rooms.
+This is local-only for development right now; the diagram describes the target shape for Phase 11. One thing to flag ahead of that phase: room state lives entirely in the Node process's memory (`rooms{}`), not in an external database. That's fine for a single-instance deployment, but it's a real constraint — the deployment can't be horizontally scaled across multiple server instances without also adding shared state (e.g. Redis) for room data, since two instances wouldn't see each other's rooms at all.
 
 ---
 

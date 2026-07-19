@@ -66,10 +66,10 @@
   function setTimerHud(secondsLeft, duration) {
     if (duration > 0) {
       const secs = Math.ceil(Math.max(0, secondsLeft));
-      timerEl.textContent = '⏱ ' + secs + 's';
+      timerEl.textContent = secs + 's';
       timerEl.style.color = secs <= 10 ? '#ff6060' : '#ffe27a';
     } else {
-      timerEl.textContent = '⏱ ∞';
+      timerEl.textContent = '∞';
       timerEl.style.color = '#ffe27a';
     }
   }
@@ -97,7 +97,7 @@
     startOverlay.classList.add('hidden');
     roomStatusEl.classList.add('hidden');
     roomStatusEl.textContent = '';
-    statusEl.textContent = '● Not connected';
+    statusEl.textContent = 'Not connected';
     statusEl.style.color = '';
     modeSelect.classList.remove('hidden');
   }
@@ -180,9 +180,9 @@
 
   function showWinnerLocal() {
     const h1 = heightOf(p1), h2 = heightOf(p2);
-    if (h1 > h2)      startText.innerHTML = '🏆 PLAYER 1 WINS!<span>Press R or click Restart</span>';
-    else if (h2 > h1) startText.innerHTML = '🏆 PLAYER 2 WINS!<span>Press R or click Restart</span>';
-    else              startText.innerHTML = '🤝 DRAW!<span>Press R or click Restart</span>';
+    if (h1 > h2)      startText.innerHTML = 'PLAYER 1 WINS!<span>Press R or click Restart</span>';
+    else if (h2 > h1) startText.innerHTML = 'PLAYER 2 WINS!<span>Press R or click Restart</span>';
+    else              startText.innerHTML = 'DRAW!<span>Press R or click Restart</span>';
     startOverlay.classList.remove('hidden');
   }
 
@@ -227,13 +227,13 @@
     roomStatusEl.textContent = '';
 
     const roomId = roomInput.value.trim() || 'race1';
-    statusEl.textContent = '● Connecting...';
+    statusEl.textContent = 'Connecting...';
     statusEl.style.color = '#ffe27a';
 
     socket = io(); // same origin — server.js serves the client, so no URL needed
 
     socket.on('connect', () => {
-      statusEl.textContent = '● Connected, joining...';
+      statusEl.textContent = 'Connected, joining...';
       statusEl.style.color = '#4fd6ff';
       // If we have a token from a previous slot in this room, the server
       // will use it to reclaim that slot if we're still within the grace
@@ -249,18 +249,18 @@
         ONLINE_TIMER_DURATION = timerDuration; // reflect the room's actual setting
         syncTimerButtonUI(timerDuration);       // e.g. if the other player already set 30s
       }
-      statusEl.textContent = `● You are Player ${player + 1}`;
+      statusEl.textContent = `You are Player ${player + 1}`;
       statusEl.style.color = '#2de8b0';
       startText.innerHTML = `WAITING FOR PLAYER ${player === 0 ? 2 : 1}...`;
     });
 
     socket.on('roomStatus', ({ p1Connected, p2Connected }) => {
       roomStatusEl.classList.remove('hidden');
-      roomStatusEl.textContent = `P1: ${p1Connected ? '✅' : '⏳'}  P2: ${p2Connected ? '✅' : '⏳'}`;
+      roomStatusEl.textContent = `P1: ${p1Connected ? 'connected' : 'waiting'}  P2: ${p2Connected ? 'connected' : 'waiting'}`;
     });
 
     socket.on('opponentPaused', ({ player, graceSeconds }) => {
-      startText.innerHTML = `⏸ PLAYER ${player + 1}'S CONNECTION DROPPED<span>Waiting up to ${graceSeconds}s for them to reconnect...</span>`;
+      startText.innerHTML = `PLAYER ${player + 1}'S CONNECTION DROPPED<span>Waiting up to ${graceSeconds}s for them to reconnect...</span>`;
       startOverlay.classList.remove('hidden');
     });
 
@@ -271,7 +271,7 @@
 
     socket.on('opponentLeft', ({ player }) => {
       netState = null;
-      startText.innerHTML = `⚠ PLAYER ${player + 1} DISCONNECTED<span>Click Restart or Connect to start a new match</span>`;
+      startText.innerHTML = `PLAYER ${player + 1} DISCONNECTED<span>Click Restart or Connect to start a new match</span>`;
       startOverlay.classList.remove('hidden');
     });
 
@@ -288,13 +288,13 @@
     });
 
     socket.on('error', (msg) => {
-      statusEl.textContent = '✖ ' + msg;
+      statusEl.textContent = msg;
       statusEl.style.color = '#ff6fb0';
       alert(msg);
     });
 
     socket.on('disconnect', () => {
-      statusEl.textContent = '✖ Disconnected';
+      statusEl.textContent = 'Disconnected';
       statusEl.style.color = '#ff6fb0';
       startOverlay.classList.remove('hidden');
       startText.innerHTML = 'DISCONNECTED<span>Click Restart to reconnect</span>';
@@ -302,9 +302,9 @@
   }
 
   function showWinnerOnline(state) {
-    if (state.winner === 0)      startText.innerHTML = '🏆 PLAYER 1 WINS!<span>Click Restart to rematch</span>';
-    else if (state.winner === 1) startText.innerHTML = '🏆 PLAYER 2 WINS!<span>Click Restart to rematch</span>';
-    else                          startText.innerHTML = '🤝 DRAW!<span>Click Restart to rematch</span>';
+    if (state.winner === 0)      startText.innerHTML = 'PLAYER 1 WINS!<span>Click Restart to rematch</span>';
+    else if (state.winner === 1) startText.innerHTML = 'PLAYER 2 WINS!<span>Click Restart to rematch</span>';
+    else                          startText.innerHTML = 'DRAW!<span>Click Restart to rematch</span>';
     startOverlay.classList.remove('hidden');
   }
 

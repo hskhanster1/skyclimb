@@ -4,7 +4,7 @@
 **Scope:** `server/server.js` and the client/server boundary described in `Architecture.md`
 **Methodology:** STRIDE, applied per data flow crossing the trust boundary (see `docs/diagrams/trust-boundary.svg`), not per component in isolation — a threat only matters here if it crosses from the untrusted client into something the trusted server relies on.
 
-This document deliberately builds on the Phase 5 Risk Register rather than starting over: several risks identified there map directly onto a STRIDE category and are cross-referenced by ID. Where STRIDE surfaces something the earlier pass missed entirely, it's logged as a new risk (R8–R10) — which is itself worth noting as evidence that a structured methodology catches things an ad hoc audit doesn't, even when the ad hoc audit was reasonably thorough.
+This builds on the Phase 5 Risk Register instead of starting over from scratch: several risks identified there map directly onto a STRIDE category and are cross-referenced by ID. Where STRIDE turned up something the earlier pass missed entirely, it's logged as a new risk (R8–R10). That gap is itself a decent argument for doing a structured pass at all, even when the earlier ad hoc audit was reasonably thorough.
 
 ## Assets
 
@@ -55,7 +55,7 @@ There is no personal data, no accounts, and no payment information in scope — 
 |---|---|---|
 | No persistent, timestamped record of match events (joins, disconnects, match outcomes) — only ephemeral `console.log` output that vanishes on server restart | Server-wide | **R8 (new)** |
 
-**Assessment:** This category wasn't represented at all in the Phase 5 register — it simply isn't a question "can the client cheat?" naturally surfaces, which is exactly why a separate structured pass is worth doing rather than treating Phase 5 as sufficient. If a dispute ever arose ("the server disconnected me unfairly" / "my opponent's win shouldn't count"), there is currently no record to check the claim against. Low severity given the game has no stakes attached to outcomes today, but worth having on record before this becomes a portfolio piece that gets asked about in an interview.
+**Assessment:** This category didn't show up in the Phase 5 register at all — "can the client cheat?" just doesn't lead you here naturally, which is a good example of why a separate structured pass earns its keep. If a dispute ever came up ("the server disconnected me unfairly" / "my opponent's win shouldn't count"), there's currently nothing to check the claim against. Low severity today, since the game has no real stakes attached to outcomes, but I want it on record before this becomes a portfolio piece someone asks about in an interview.
 
 ## Information Disclosure
 
@@ -85,7 +85,7 @@ There is no personal data, no accounts, and no payment information in scope — 
 
 *Could someone gain capabilities or access beyond what they should have?*
 
-**Assessment:** Largely not applicable by design — there are only two roles in this system (Player 0 / Player 1), no admin interface reachable over the socket, and no privilege hierarchy to escalate into. The closest analogue is slot theft (already covered under Spoofing, R3), which is a lateral access problem rather than a vertical privilege escalation. Documenting "not applicable, and here's why" is deliberate: a threat model that silently skips a STRIDE category is harder to distinguish from one that just forgot to check it.
+**Assessment:** Largely not applicable by design. There are only two roles in this system (Player 0 / Player 1), no admin interface reachable over the socket, and no privilege hierarchy to climb into in the first place. The closest thing is slot theft (already covered under Spoofing, R3), and that's a lateral access problem, not a vertical privilege escalation. I'm documenting "not applicable, and here's why" on purpose — a threat model that just skips a STRIDE category silently is hard to tell apart from one that forgot to check it.
 
 ---
 

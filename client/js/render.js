@@ -420,14 +420,13 @@ function drawCharacter(x, topY, color, glow, facing) {
 }
 
 // ============================================================
-// 🆕 MULTIPLAYER FULL-SCREEN RENDERER
-// Uses ALL your exact visual functions above.
-// Call this from your multiplayer main.js instead of drawColumn.
+// Full-screen renderer for Online mode.
+// Reuses the same drawing primitives as the Local-mode column view above.
 // ============================================================
 function drawFullGame(state, camY) {
   const t = performance.now() * 0.00022;
 
-  // --- All your beautiful background layers (unchanged) ---
+  // Background layers (shared with Local mode, unchanged)
   drawCaveBg();
   drawStars(camY);
   drawPurpleDust(camY);

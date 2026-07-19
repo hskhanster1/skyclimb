@@ -29,7 +29,7 @@
 
 ## Gaps found while writing this document
 
-Writing requirements *after* building the system, rather than before, has one advantage worth naming honestly: it surfaces gaps between what was built and what a complete spec would have required. Two are worth recording rather than quietly ignoring:
+Writing requirements after the system already exists isn't how this is supposed to go. But it did have one upside I'll admit to: it made the gaps between what got built and what a proper spec would demand pretty obvious. Two of them are worth recording instead of just quietly moving on:
 
-- **No requirement was ever written for maximum concurrent rooms or players.** The system has no admission control — nothing stops an unbounded number of *simultaneously active* rooms, only abandoned ones (R1) or ones with ghost slots (R12). This wasn't caught earlier because no requirement existed to catch it against. Logged as a residual gap; would need a real requirement (e.g. "the server shall reject new rooms beyond N concurrent") before this could be called complete for anything beyond portfolio/demo use.
-- **No requirement exists for browser/device compatibility beyond "common desktop browsers."** Mobile input (touch controls) was never a design goal and isn't supported — worth stating explicitly rather than leaving implicit.
+- **No requirement was ever written for maximum concurrent rooms or players.** There's no admission control at all. Nothing stops an unbounded number of *simultaneously active* rooms — only abandoned ones (R1) or ones with ghost slots (R12) get cleaned up. I missed this earlier simply because there was no requirement to check the code against. It's logged as a residual gap now. A real requirement (something like "the server shall reject new rooms beyond N concurrent") would be needed before I'd call this complete for anything beyond a portfolio/demo build.
+- **No requirement exists for browser/device compatibility beyond "common desktop browsers."** Mobile input never made it onto the design goals and touch controls aren't supported. That should be said outright rather than just left unwritten.

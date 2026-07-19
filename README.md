@@ -1,6 +1,6 @@
 # Sky Climb
 
-A real-time multiplayer platformer built as a **security engineering case study** — the game itself is the vehicle, not the point. This project demonstrates Security by Design and the Secure Software Development Lifecycle (SSDLC) applied to a client-server application: architecture decisions, threat modelling, server-authoritative design, and secure coding practices, all documented like a real organisation would.
+A real-time multiplayer platformer built as a **security engineering case study**. The game itself is the vehicle, not the point — this project demonstrates Security by Design and the Secure Software Development Lifecycle (SSDLC) applied to a client-server application: architecture decisions, threat modelling, server-authoritative design, and secure coding practices, all documented the way a real organisation would do it.
 
 ## What this is
 
@@ -13,7 +13,7 @@ skyclimb/
 ├── client/       # Browser game: HTML, CSS, and modular JS (rendering, input, physics)
 ├── server/       # Node.js + Express + Socket.IO server — authoritative game state
 ├── docs/         # Architecture, risk, and threat-modelling documentation (SSDLC artifacts)
-├── render.yaml   # One-click deploy blueprint for Render (see Deployment Guide)
+├── render.yaml   # One-click deploy blueprint for Render
 ├── README.md
 ├── LICENSE
 └── package.json
@@ -49,6 +49,7 @@ Everything below is a real artifact grounded in this specific codebase, not temp
 
 | Document | What it covers |
 |---|---|
+| [User Guide](docs/User%20Guide.md) | How to actually play — modes, controls, timer, scoring |
 | [Project Charter](docs/Project%20Charter.md) | Purpose, objectives, scope, and the 11-phase plan |
 | [Software Requirements](docs/Software%20Requirements.md) | Functional/non-functional requirements, plus gaps found writing them retrospectively |
 | [Security Requirements](docs/Security%20Requirements.md) | Testable SHALL statements, each traced to a Risk Register ID and its verification |
@@ -58,7 +59,6 @@ Everything below is a real artifact grounded in this specific codebase, not temp
 | [Security Testing Report](docs/Security%20Testing.md) | Adversarial test results — including two critical bugs found by trying to break the system, not just verify it |
 | [Security Decisions](docs/Security%20Decisions.md) | A log of decisions that deviated from the plan, and why — including two real production-crashing bugs fixed on the spot |
 | [Lessons Learned](docs/Lessons%20Learned.md) | What worked, what was harder than expected, what would change next time |
-| [Deployment Guide](docs/Deployment%20Guide.md) | Exact steps to deploy to Render/Railway/Fly.io, plus known free-tier limitations |
 
 Worth reading first if you're short on time: **Security Testing.md**, specifically the finding that a single malformed packet (`socket.emit('join', null)`) crashed the entire server — found and fixed during a dedicated adversarial-testing phase that Phase 8's own verification testing never would have caught.
 

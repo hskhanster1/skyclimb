@@ -28,7 +28,7 @@ The fix was implemented and verified with a scripted test (5 rooms created and a
 
 ### Rationale
 
-This reflects a deliberate choice to let risk severity drive remediation timing rather than following the phase plan rigidly. A structured SSDLC gives the project order and rigour, but treating every phase boundary as a hard gate — even for a fix this cheap and this severe — would be schedule adherence for its own sake rather than actual risk management. Real security programs work the same way: a critical, low-cost fix doesn't wait for the next sprint boundary just because a roadmap says so.
+This is a deliberate choice to let severity drive remediation timing instead of following the phase plan rigidly. A structured SSDLC gives the project order and rigour, sure, but treating every phase boundary as a hard gate — even for a fix this cheap and this severe — is just schedule adherence for its own sake, not actual risk management. Real security programs work the same way. A critical, low-cost fix doesn't wait for the next sprint boundary because a roadmap happens to say so.
 
 ### What this doesn't change
 
@@ -48,13 +48,13 @@ During adversarial testing, `socket.emit('join', null)` — a single malformed p
 
 ### Decision
 
-Remediated immediately, on the same basis as SD-001: this is about as severe as a finding in this system can be (total service outage, for everyone, triggered by any single client at any time) at essentially zero cost to fix (a null-safe destructure plus a `try`/`catch` around the handler). Waiting for a scheduled phase to fix a proven denial-of-service that any player can trigger by accident, let alone on purpose, would not have been a defensible engineering decision.
+I remediated this immediately, on the same basis as SD-001. This is about as severe as a finding in this system gets — total service outage, for everyone, triggered by any single client at any time — and it cost almost nothing to fix: a null-safe destructure plus a `try`/`catch` around the handler. Sitting on a proven denial-of-service that any player could trigger by accident, let alone on purpose, just to hit a phase boundary, wouldn't have been defensible.
 
 The fix went further than the single line that caused the crash: every Socket.IO event handler (`join`, `input`, `disconnect`) was wrapped in `try`/`catch`, and a process-level `uncaughtException` listener was added as a last-resort net. This is deliberately defense-in-depth rather than a single patch, because Phase 9 exists precisely to find failure modes like this one, and there was no reason to assume this was the only handler with an unguarded exception path.
 
 ### Rationale
 
-This is the clearest possible illustration of why Phase 9 (Security Testing) is a distinct phase from Phase 8 (Secure Development) rather than a formality after it: Phase 8's own verification tests never sent a bare `null` payload, because verification tests confirm a control does what it was designed to do — they don't try to break things the designer didn't think of. Phase 9's job is adversarial thinking, and it found something Phase 8's thorough-but-cooperative testing did not.
+This is the clearest illustration I have for why Phase 9 (Security Testing) is a genuinely separate phase from Phase 8 (Secure Development), not just a formality tacked on after it. Phase 8's own verification tests never sent a bare `null` payload, because verification tests confirm a control does what it was designed to do. They don't go looking for things the designer never thought of. Phase 9's job is adversarial thinking, and it found something Phase 8's thorough but cooperative testing missed.
 
 ---
 
@@ -80,4 +80,4 @@ This finding is also a useful data point on Phase 9's value specifically: R1's *
 
 ### What this means for the Risk Register going forward
 
-Two high-severity findings from one adversarial pass, on a codebase that had already been through Phase 5 (risk identification), Phase 7 (STRIDE), and Phase 8 (controls implemented and individually verified), is worth stating plainly rather than glossing over: **verification that a control works is not the same exercise as trying to defeat it.** Phase 9 is not a formality that comes after the real security work — for this project, it was where two of the most severe findings actually came from.
+Two high-severity findings from one adversarial pass, on a codebase that had already been through Phase 5 (risk identification), Phase 7 (STRIDE), and Phase 8 (controls implemented and individually verified) — I want to state this plainly instead of glossing over it. **Verifying that a control works is not the same exercise as trying to defeat it.** Phase 9 isn't a formality tacked on after the real security work. For this project, it's where two of the most severe findings actually came from.

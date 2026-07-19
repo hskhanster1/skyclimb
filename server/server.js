@@ -69,7 +69,7 @@ function makeLimiter(maxEvents, windowMs) {
 const inputRateLimited = makeLimiter(40, 1000);  // generous headroom above real keyboard rates
 const joinRateLimited  = makeLimiter(5, 10000);
 
-// ---------- Game Constants (copied from your client) ----------
+// ---------- Game Constants (mirrored from client/js/constants.js) ----------
 const PLAYER_W = 24, PLAYER_H = 32;
 const PLATFORM_W = 62, PLATFORM_H = 14;
 const GRAVITY = 0.55;
@@ -78,7 +78,7 @@ const MOVE_ACC = 0.65;
 const MOVE_MAX = 4.3;
 const FRICTION = 0.84;
 const GROUND_Y = 0;
-const COL_W = 400; // fixed logical width (your client will scale this)
+const COL_W = 400; // fixed logical width; client scales this to fit the canvas
 
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 function platformX(frac) { return frac * (COL_W - PLATFORM_W); }
@@ -508,5 +508,5 @@ process.on('uncaughtException', (err) => {
 
 const PORT = process.env.PORT || 3000; // Render/Railway/Fly.io assign this dynamically
 server.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });

@@ -2,13 +2,13 @@
 
 **Project:** Sky Climb — A Security Engineering Case Study
 **Owner:** Rome (Cybersecurity student, Macquarie University)
-**Status:** Codebase and documentation complete through Phase 11; live hosting is a manual step for the project owner to complete (see Deployment Guide.md)
+**Status:** Codebase and documentation complete through Phase 11; live hosting was completed manually outside this project's tooling
 
 ## Purpose
 
-Sky Climb is a real-time multiplayer browser game built specifically to demonstrate Security by Design and the Secure Software Development Lifecycle (SSDLC) as practiced end-to-end on a real client-server application — not as a classroom exercise, but structured and documented the way a security-conscious engineering organization would actually run a project.
+Sky Climb is a real-time multiplayer browser game built specifically to demonstrate Security by Design and the Secure Software Development Lifecycle (SSDLC), applied end-to-end on a real client-server application. It's not meant to read like a classroom exercise; it's structured and documented the way a security-conscious engineering organization would actually run a project.
 
-The game itself is the vehicle. The actual deliverable is the evidence this project generates: architecture decisions made and justified, a risk register that gets used rather than filed away, a threat model that changes how the code gets written, and a testing phase that genuinely tries to break what came before it.
+The game itself is the vehicle, not the point. What I actually wanted out of this project was the evidence it generates: architecture decisions made and justified, a risk register that gets used instead of filed away, a threat model that actually changes how the code gets written, and a testing phase that genuinely tries to break what came before it.
 
 ## Objectives
 
@@ -70,4 +70,4 @@ Keeping scope deliberately bounded is itself a documented decision, not an overs
 | 8 | Secure development — controls implemented | Complete |
 | 9 | Security testing — adversarial verification | Complete |
 | 10 | Governance & documentation | Complete |
-| 11 | Deployment | Codebase deploy-ready; hosting account setup is a manual step outside this project's tooling — see Deployment Guide.md |
+| 11 | Deployment | Complete — deployed to Render; see Lessons Learned.md for post-deployment findings |

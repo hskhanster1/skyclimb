@@ -2,7 +2,7 @@
 
 **Status:** Phase 9 (Security Testing)
 **Scope:** `server/server.js` as hardened through Phase 8
-**Methodology:** Adversarial testing against Sky Climb's own controls — scripted attacks using a real Socket.IO client, run against a live instance of the server. This is deliberately a different exercise from Phase 8's verification tests: Phase 8 confirmed each control does what it was designed to do; Phase 9 tried to defeat each control, including in ways its designer (this project) didn't originally anticipate.
+**Methodology:** Adversarial testing against Sky Climb's own controls, using scripted attacks against a live instance of the server through a real Socket.IO client. This is on purpose a different exercise from Phase 8's verification tests. Phase 8 confirmed each control does what it was designed to do. Phase 9 tried to defeat each control, including in ways I didn't originally think of when building them.
 
 All tests are reproducible scripts, not manual one-off checks. Results below are from the actual test runs, not predicted or assumed outcomes.
 
@@ -72,4 +72,4 @@ Reasoned through rather than scripted, since it requires simulating token *leaka
 
 ## What this phase demonstrates
 
-Every finding in this report came from the "Modified Client" category — the one where the test scripts sent payloads no cooperative client would ever construct. Every other category, where Phase 8's controls were specifically designed against a known risk, held up under direct adversarial pressure. That's a meaningful signal about where a control's own test coverage tends to have blind spots: not in the scenario it was built for, but in the scenarios adjacent to it that nobody thought to write a control for in the first place, because nobody thought to attack them yet.
+Every finding in this report came from the "Modified Client" category, the one where the test scripts sent payloads no cooperative client would ever construct. Every other category, where Phase 8's controls were built against a specific known risk, held up under direct adversarial pressure. That says something about where a control's own test coverage tends to have blind spots: not in the scenario it was built for, but in the scenarios next to it that nobody wrote a control for, because nobody had thought to attack them yet.

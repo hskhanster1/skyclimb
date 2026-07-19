@@ -3,7 +3,7 @@
 **Status:** Phase 10 — derived retrospectively from the Risk Register and Threat Model, then used to check every requirement traces to an implemented, verified control
 **Format:** Each requirement is a testable SHALL statement, traced to the Risk Register ID it addresses and the phase/test that verified it.
 
-Writing these after the fact (rather than before Phase 5) is a deliberate choice worth being upfront about: on a real project, security requirements should exist before implementation begins. Here, they're being extracted from decisions already made and tested, specifically so this document can be checked for gaps — see the end of this file.
+I want to be upfront that writing these after the fact, instead of before Phase 5, isn't how it should go on a real project — security requirements should exist before implementation starts. Here, they're extracted from decisions that were already made and tested, specifically so I could check this document for gaps afterward. See the end of this file.
 
 ## Trust & Authority
 
@@ -11,6 +11,8 @@ Writing these after the fact (rather than before Phase 5) is a deliberate choice
 |---|---|---|---|
 | SR-1 | The server SHALL be the sole authority for player position, physics, collision, score, and win conditions. The client SHALL NOT be able to influence any of these by any message it sends. | Phase 4 design decision; Trust Boundary diagram | Yes — architecture review, Phase 9 adversarial testing found no bypass |
 | SR-2 | The client SHALL be permitted to send only a fixed-shape input payload (`left`, `right`, `jump`), and nothing else SHALL be trusted from it. | Phase 4; Trust Boundary diagram | Yes |
+
+**On least privilege:** there's no role hierarchy, no admin surface, and no persistent identity in this system to scope permissions against, so least privilege in the traditional sense doesn't map cleanly onto it — this is a deliberate scope call (see Project Charter, "Out of scope"), not an oversight. The closest analogue is the trust boundary itself: SR-2 already gives the client exactly the privilege it needs — the ability to send input intent — and nothing more. That's least privilege applied at the only boundary this system actually has.
 
 ## Input Validation
 
@@ -49,11 +51,11 @@ Writing these after the fact (rather than before Phase 5) is a deliberate choice
 |---|---|---|---|
 | SR-14 | The server SHALL maintain a persistent, timestamped log of connection and match lifecycle events, surviving a process restart. | R8 | Yes — Phase 8 |
 
-## Deployment (not yet applicable)
+## Deployment
 
 | ID | Requirement | Traces to | Verified |
 |---|---|---|---|
-| SR-15 | The server SHALL restrict cross-origin access to the deployed client's actual origin in any environment other than local development. | R5 | Code is deploy-ready (`ALLOWED_ORIGIN` env var); not yet verified against a real deployment — pending Phase 11 |
+| SR-15 | The server SHALL restrict cross-origin access to the deployed client's actual origin in any environment other than local development. | R5 | Yes — `ALLOWED_ORIGIN` set to the live deployed domain post-launch; see Lessons Learned for post-deployment findings |
 
 ## Gaps found while writing this document
 
