@@ -121,7 +121,8 @@ function ensurePatternAbove(targetY) {
 seedPattern();
 
 // ---------- Physics Update (from player.js) ----------
-function updatePlayer(p, keys, jumpQueued) {
+// FIXED: Now accepts `platformPattern` so it doesn't use the incorrect global pattern!
+function updatePlayer(p, keys, jumpQueued, platformPattern) {
   const moveLeft = keys.left;
   const moveRight = keys.right;
 
@@ -157,7 +158,8 @@ function updatePlayer(p, keys, jumpQueued) {
       p.onGround = true;
     } else {
       let best = null;
-      for (const plat of pattern) {
+      // <--- Uses the passed room-specific pattern instead of global `pattern`
+      for (const plat of platformPattern) {
         // Add a 0.5px buffer to prevent floating point comparison failures (R13)
         if (plat.y < prevFootY - 0.5 || plat.y > newFootY + 0.5) continue;
         const px = platformX(plat.frac);
@@ -270,10 +272,11 @@ setInterval(() => {
         }
       }
 
-      updatePlayer(p1, room.keys[0], room.jumpQueued[0]);
+      // <--- PASSES THE ROOM'S SPECIFIC PATTERN TO THE PHYSICS ENGINE
+      updatePlayer(p1, room.keys[0], room.jumpQueued[0], room.pattern);
       room.jumpQueued[0] = false;
 
-      updatePlayer(p2, room.keys[1], room.jumpQueued[1]);
+      updatePlayer(p2, room.keys[1], room.jumpQueued[1], room.pattern);
       room.jumpQueued[1] = false;
     }
 
