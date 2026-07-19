@@ -60,7 +60,7 @@ Everything below is a real artifact grounded in this specific codebase, not temp
 | [Security Decisions](docs/Security%20Decisions.md) | A log of decisions that deviated from the plan, and why — including two real production-crashing bugs fixed on the spot |
 | [Lessons Learned](docs/Lessons%20Learned.md) | What worked, what was harder than expected, what would change next time |
 
-Worth reading first if you're short on time: **Security Testing.md**, specifically the finding that a single malformed packet (`socket.emit('join', null)`) crashed the entire server — found and fixed during a dedicated adversarial-testing phase that Phase 8's own verification testing never would have caught.
+
 
 ## License
 
