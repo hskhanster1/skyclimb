@@ -1,6 +1,6 @@
 # Project Charter
 
-**Project:** Sky Climb — A Security Engineering Case Study
+**Project:** Sky Climb: A Security Engineering Case Study
 **Owner:** Rome (Cybersecurity student, Macquarie University)
 **Status:** Codebase and documentation complete through Phase 11; live hosting was completed manually outside this project's tooling
 
@@ -12,11 +12,11 @@ The game itself is the vehicle, not the point. What I actually wanted out of thi
 
 ## Objectives
 
-1. Build a professional portfolio centred on demonstrating Security by Design and SSDLC principles — not game development skill for its own sake.
+1. Build a professional portfolio centred on demonstrating Security by Design and SSDLC principles, not game development skill for its own sake.
 2. Develop practical, hands-on experience in the things GRC and security architecture roles actually do: client-server trust boundaries, threat modelling, authentication/session handling, structured logging, risk assessment, and secure coding practices.
-3. Document the project the way a real organization would — architecture diagrams, a risk register, security requirements, a threat model, a testing report, and a decision log — as artifacts that stand on their own, not narration written after the fact.
+3. Document the project the way a real organization would: architecture diagrams, a risk register, security requirements, a threat model, a testing report, and a decision log, all as artifacts that stand on their own rather than narration written after the fact.
 4. Produce evidence-based material for LinkedIn and GitHub that presents this work as a professional case study, not a university assignment.
-5. Position for early-career roles in GRC, Security Architecture, Cloud Governance, and Security Consulting — using a software engineering background to demonstrate the ability to design, assess, and secure systems, not just build them.
+5. Position for early-career roles in GRC, Security Architecture, Cloud Governance, and Security Consulting, using a software engineering background to demonstrate the ability to design, assess, and secure systems, not just build them.
 
 ## Scope
 
@@ -24,15 +24,15 @@ The game itself is the vehicle, not the point. What I actually wanted out of thi
 - A working real-time multiplayer platformer (local same-keyboard mode and online mode)
 - A server-authoritative architecture where the client cannot affect game-critical outcomes
 - Full SSDLC documentation: charter, requirements, architecture, threat model, risk register, security testing report, decision log, lessons learned
-- Security controls proportionate to the system's actual risk profile — this is a real project, not a padded checklist
+- Security controls proportionate to the system's actual risk profile. This is a real project, not a padded checklist
 
 **Out of scope (deliberately):**
 - User accounts, authentication beyond a session-scoped reconnection token, or any persistent user data
 - Payment, monetization, or anything involving real financial or personally identifiable data
-- Production-scale infrastructure (load balancing, multi-region deployment, managed database) — the project states explicitly where these constraints exist (see Architecture.md) rather than building for a scale this project doesn't need
+- Production-scale infrastructure (load balancing, multi-region deployment, managed database). The project states explicitly where these constraints exist (see Architecture.md) rather than building for a scale this project doesn't need
 - Bot/anti-cheat detection beyond what's documented as an accepted risk (R7)
 
-Keeping scope deliberately bounded is itself a documented decision, not an oversight — a system with no real stakes attached shouldn't be over-engineered with controls that exist only to look thorough.
+Keeping scope deliberately bounded is itself a documented decision, not an oversight. A system with no real stakes attached shouldn't be over-engineered with controls that exist only to look thorough.
 
 ## Stakeholders
 
@@ -45,15 +45,15 @@ Keeping scope deliberately bounded is itself a documented decision, not an overs
 ## Success Criteria
 
 - The game functions correctly in both Local and Online modes.
-- The server is demonstrably authoritative for all game-critical logic (verified, not just claimed — see Risk Register).
-- Every phase of the SSDLC plan produces a real, specific artifact grounded in this codebase — no generic or templated security documentation.
+- The server is demonstrably authoritative for all game-critical logic (verified, not just claimed; see Risk Register).
+- Every phase of the SSDLC plan produces a real, specific artifact grounded in this codebase, not generic or templated security documentation.
 - At least one instance exists in the documentation of a decision that deviated from the plan for a defensible reason (see Security Decisions.md), since that's stronger evidence of judgement than perfect schedule adherence.
 - The finished documentation set is something Rome could walk a technical interviewer through, phase by phase, and defend every claim in it.
 
 ## Constraints
 
-- **Solo project, portfolio timeline.** Decisions are made without a team to review them — documented reasoning substitutes for that review, which is itself a deliberate compensating practice.
-- **No real stakes.** There's no user data, no money, and no reputational risk from this system going down — risk ratings throughout this documentation reflect that honestly rather than inflating severity for dramatic effect.
+- **Solo project, portfolio timeline.** Decisions are made without a team to review them. Documented reasoning substitutes for that review, which is itself a deliberate compensating practice.
+- **No real stakes.** There's no user data, no money, and no reputational risk from this system going down. Risk ratings throughout this documentation reflect that honestly rather than inflating severity for dramatic effect.
 - **Built incrementally, phase by phase**, with each phase's output feeding the next (e.g., the Trust Boundary diagram from Phase 6 directly shaped the STRIDE analysis in Phase 7; the Risk Register from Phase 5 was extended, not replaced, by Phase 7's findings).
 
 ## Project Plan Overview

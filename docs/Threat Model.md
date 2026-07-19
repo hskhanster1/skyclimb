@@ -2,24 +2,24 @@
 
 **Status:** Phase 7
 **Scope:** `server/server.js` and the client/server boundary described in `Architecture.md`
-**Methodology:** STRIDE, applied per data flow crossing the trust boundary (see `docs/diagrams/trust-boundary.svg`), not per component in isolation — a threat only matters here if it crosses from the untrusted client into something the trusted server relies on.
+**Methodology:** STRIDE, applied per data flow crossing the trust boundary (see `docs/diagrams/trust-boundary.svg`), not per component in isolation. A threat only matters here if it crosses from the untrusted client into something the trusted server relies on.
 
 This builds on the Phase 5 Risk Register instead of starting over from scratch: several risks identified there map directly onto a STRIDE category and are cross-referenced by ID. Where STRIDE turned up something the earlier pass missed entirely, it's logged as a new risk (R8–R10). That gap is itself a decent argument for doing a structured pass at all, even when the earlier ad hoc audit was reasonably thorough.
 
 ## Assets
 
 What's actually worth protecting here:
-- **Game fairness** — the integrity of the match outcome (score, winner)
-- **Service availability** — the server staying up and responsive for legitimate players
-- **Match integrity** — the guarantee that the two people in a room are the two people who intended to be there
+- **Game fairness:** the integrity of the match outcome (score, winner)
+- **Service availability:** the server staying up and responsive for legitimate players
+- **Match integrity:** the guarantee that the two people in a room are the two people who intended to be there
 
-There is no personal data, no accounts, and no payment information in scope — this materially limits how severe most findings can be.
+There is no personal data, no accounts, and no payment information in scope, which materially limits how severe most findings can be.
 
 ## Threat Actors
 
-- **A player in the match** — has full control over their own client and can modify or replace it (browser devtools, custom scripts). This is the primary actor STRIDE needs to consider, since it's the only actor with any legitimate access at all.
-- **An uninvited third party** — someone who obtains or guesses a room code without being invited.
-- **An unrelated internet host** — no authentication exists, so any host that can reach the server's port is technically a potential actor for availability threats, even without ever playing.
+- **A player in the match:** has full control over their own client and can modify or replace it (browser devtools, custom scripts). This is the primary actor STRIDE needs to consider, since it's the only actor with any legitimate access at all.
+- **An uninvited third party:** someone who obtains or guesses a room code without being invited.
+- **An unrelated internet host:** no authentication exists, so any host that can reach the server's port is technically a potential actor for availability threats, even without ever playing.
 
 ---
 
@@ -33,7 +33,7 @@ There is no personal data, no accounts, and no payment information in scope — 
 | A brief network drop frees a player's slot; a different client (or an attacker who was already probing that room) claims it before the original player reconnects | Room Manager (`disconnect` handler) | **R3** |
 | A client claims to be sending genuine keyboard input when it's actually a script | Input Handler | **R7** — accepted as a known limitation, not remediated |
 
-**Assessment:** The core spoofing risk here isn't identity theft in the traditional sense (no accounts to steal) — it's *slot theft*, made possible because room codes double as the only access control and there's no concept of "this player's session" that survives a reconnect.
+**Assessment:** The core spoofing risk here isn't identity theft in the traditional sense (no accounts to steal). It's *slot theft*, made possible because room codes double as the only access control and there's no concept of "this player's session" that survives a reconnect.
 
 ## Tampering
 
@@ -45,7 +45,7 @@ There is no personal data, no accounts, and no payment information in scope — 
 | A modified client sends `input` events at a rate far exceeding 60Hz | Socket.IO Handler | **R2** |
 | Tampering with position, score, physics constants, or the platform pattern | — | **Not possible** — none of these ever originate from the client (see Trust Boundary diagram) |
 
-**Assessment:** This is the category where the Phase 4 server-authority decision pays off most visibly. The tamperable surface is deliberately tiny — three booleans — precisely because everything else was designed to never trust client input in the first place.
+**Assessment:** This is the category where the Phase 4 server-authority decision pays off most visibly. The tamperable surface is deliberately tiny, three booleans, precisely because everything else was designed to never trust client input in the first place.
 
 ## Repudiation
 
@@ -55,7 +55,7 @@ There is no personal data, no accounts, and no payment information in scope — 
 |---|---|---|
 | No persistent, timestamped record of match events (joins, disconnects, match outcomes) — only ephemeral `console.log` output that vanishes on server restart | Server-wide | **R8 (new)** |
 
-**Assessment:** This category didn't show up in the Phase 5 register at all — "can the client cheat?" just doesn't lead you here naturally, which is a good example of why a separate structured pass earns its keep. If a dispute ever came up ("the server disconnected me unfairly" / "my opponent's win shouldn't count"), there's currently nothing to check the claim against. Low severity today, since the game has no real stakes attached to outcomes, but I want it on record before this becomes a portfolio piece someone asks about in an interview.
+**Assessment:** This category didn't show up in the Phase 5 register at all. "Can the client cheat?" just doesn't lead you here naturally, which is a good example of why a separate structured pass earns its keep. If a dispute ever came up ("the server disconnected me unfairly" / "my opponent's win shouldn't count"), there's currently nothing to check the claim against. Low severity today, since the game has no real stakes attached to outcomes, but I want it on record before this becomes a portfolio piece someone asks about in an interview.
 
 ## Information Disclosure
 
@@ -67,7 +67,7 @@ There is no personal data, no accounts, and no payment information in scope — 
 | Wide-open CORS lets any origin's script read whatever the server's HTTP responses expose | Express Static Server | **R5** |
 | No endpoint exists to enumerate active rooms or connected players | Room Manager | Not applicable — good by omission |
 
-**Assessment:** Low severity — there's no sensitive data in this system to disclose. The main value here is reconnaissance (an attacker learning server internals), not direct harm.
+**Assessment:** Low severity; there's no sensitive data in this system to disclose. The main value here is reconnaissance (an attacker learning server internals), not direct harm.
 
 ## Denial of Service
 
@@ -79,13 +79,13 @@ There is no personal data, no accounts, and no payment information in scope — 
 | Flooding `input` or `join` events with no rate limit | Socket.IO Handler | **R2** |
 | Opening many socket connections that never call `join` at all — each still consumes a connection handle indefinitely, since there's no idle-connection timeout | Socket.IO Handler | **R10 (new)** |
 
-**Assessment:** This is the category with the most open findings, and rightly so for a real-time server with no authentication layer in front of it — anyone who can reach the port can consume some resource. R1 was the clearest high-severity case and is already fixed; R2 and R10 are related (both are really "no resource-consumption limits") and are appropriately grouped for a single Phase 8 rate-limiting pass rather than treated as unrelated fixes.
+**Assessment:** This is the category with the most open findings, and rightly so for a real-time server with no authentication layer in front of it; anyone who can reach the port can consume some resource. R1 was the clearest high-severity case and is already fixed; R2 and R10 are related (both are really "no resource-consumption limits") and are appropriately grouped for a single Phase 8 rate-limiting pass rather than treated as unrelated fixes.
 
 ## Elevation of Privilege
 
 *Could someone gain capabilities or access beyond what they should have?*
 
-**Assessment:** Largely not applicable by design. There are only two roles in this system (Player 0 / Player 1), no admin interface reachable over the socket, and no privilege hierarchy to climb into in the first place. The closest thing is slot theft (already covered under Spoofing, R3), and that's a lateral access problem, not a vertical privilege escalation. I'm documenting "not applicable, and here's why" on purpose — a threat model that just skips a STRIDE category silently is hard to tell apart from one that forgot to check it.
+**Assessment:** Largely not applicable by design. There are only two roles in this system (Player 0 / Player 1), no admin interface reachable over the socket, and no privilege hierarchy to climb into in the first place. The closest thing is slot theft (already covered under Spoofing, R3), and that's a lateral access problem, not a vertical privilege escalation. I'm documenting "not applicable, and here's why" on purpose. A threat model that just skips a STRIDE category silently is hard to tell apart from one that forgot to check it.
 
 ---
 
@@ -101,4 +101,4 @@ Added to `Risk Register.md`:
 
 ## Summary
 
-Of six applicable STRIDE categories (Elevation of Privilege excluded as not applicable), **Denial of Service has the most open findings**, which tracks with this being an unauthenticated real-time server. **Tampering has the smallest tamperable surface**, which tracks with the deliberate server-authority design from Phase 4. No findings in this pass rise to the severity of R1 — none currently justify remediation ahead of the planned Phase 8 schedule, so no further SD-00x exceptions are being made at this time.
+Of six applicable STRIDE categories (Elevation of Privilege excluded as not applicable), **Denial of Service has the most open findings**, which tracks with this being an unauthenticated real-time server. **Tampering has the smallest tamperable surface**, which tracks with the deliberate server-authority design from Phase 4. No findings in this pass rise to the severity of R1; none currently justify remediation ahead of the planned Phase 8 schedule, so no further SD-00x exceptions are being made at this time.

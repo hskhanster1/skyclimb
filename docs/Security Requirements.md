@@ -1,9 +1,9 @@
 # Security Requirements
 
-**Status:** Phase 10 — derived retrospectively from the Risk Register and Threat Model, then used to check every requirement traces to an implemented, verified control
+**Status:** Phase 10; derived retrospectively from the Risk Register and Threat Model, then used to check every requirement traces to an implemented, verified control
 **Format:** Each requirement is a testable SHALL statement, traced to the Risk Register ID it addresses and the phase/test that verified it.
 
-I want to be upfront that writing these after the fact, instead of before Phase 5, isn't how it should go on a real project — security requirements should exist before implementation starts. Here, they're extracted from decisions that were already made and tested, specifically so I could check this document for gaps afterward. See the end of this file.
+I want to be upfront that writing these after the fact, instead of before Phase 5, isn't how it should go on a real project. Security requirements should exist before implementation starts. Here, they're extracted from decisions that were already made and tested, specifically so I could check this document for gaps afterward. See the end of this file.
 
 ## Trust & Authority
 
@@ -12,7 +12,7 @@ I want to be upfront that writing these after the fact, instead of before Phase 
 | SR-1 | The server SHALL be the sole authority for player position, physics, collision, score, and win conditions. The client SHALL NOT be able to influence any of these by any message it sends. | Phase 4 design decision; Trust Boundary diagram | Yes — architecture review, Phase 9 adversarial testing found no bypass |
 | SR-2 | The client SHALL be permitted to send only a fixed-shape input payload (`left`, `right`, `jump`), and nothing else SHALL be trusted from it. | Phase 4; Trust Boundary diagram | Yes |
 
-**On least privilege:** there's no role hierarchy, no admin surface, and no persistent identity in this system to scope permissions against, so least privilege in the traditional sense doesn't map cleanly onto it — this is a deliberate scope call (see Project Charter, "Out of scope"), not an oversight. The closest analogue is the trust boundary itself: SR-2 already gives the client exactly the privilege it needs — the ability to send input intent — and nothing more. That's least privilege applied at the only boundary this system actually has.
+**On least privilege:** there's no role hierarchy, no admin surface, and no persistent identity in this system to scope permissions against, so least privilege in the traditional sense doesn't map cleanly onto it. This is a deliberate scope call (see Project Charter, "Out of scope"), not an oversight. The closest analogue is the trust boundary itself: SR-2 already gives the client exactly the privilege it needs, the ability to send input intent, and nothing more. That's least privilege applied at the only boundary this system actually has.
 
 ## Input Validation
 
@@ -59,5 +59,5 @@ I want to be upfront that writing these after the fact, instead of before Phase 
 
 ## Gaps found while writing this document
 
-- **No requirement exists for token confidentiality in transit** — SR-10/SR-11 assume the token isn't already compromised, but nothing in these requirements addresses *how* it's protected in transit (i.e., requiring HTTPS/WSS). That's implicitly a Phase 11 deployment concern, but it should have an explicit requirement here rather than living only in Architecture.md's network diagram.
-- **No requirement addresses maximum concurrent rooms** — same gap identified independently in Software Requirements.md; recorded here too since it's a security-relevant capacity limit (R1/R12 fix rooms that get abandoned, not rooms that are merely numerous).
+- **No requirement exists for token confidentiality in transit.** SR-10/SR-11 assume the token isn't already compromised, but nothing in these requirements addresses *how* it's protected in transit (i.e., requiring HTTPS/WSS). That's implicitly a Phase 11 deployment concern, but it should have an explicit requirement here rather than living only in Architecture.md's network diagram.
+- **No requirement addresses maximum concurrent rooms.** Same gap identified independently in Software Requirements.md; recorded here too since it's a security-relevant capacity limit (R1/R12 fix rooms that get abandoned, not rooms that are merely numerous).

@@ -1,17 +1,17 @@
 # Sky Climb
 
-A real-time multiplayer platformer built as a **security engineering case study**. The game itself is the vehicle, not the point — this project demonstrates Security by Design and the Secure Software Development Lifecycle (SSDLC) applied to a client-server application: architecture decisions, threat modelling, server-authoritative design, and secure coding practices, all documented the way a real organisation would do it.
+A real-time multiplayer platformer built as a **security engineering case study**. The game itself is the vehicle, not the point. This project demonstrates Security by Design and the Secure Software Development Lifecycle (SSDLC) applied to a client-server application: architecture decisions, threat modelling, server-authoritative design, and secure coding practices, all documented the way a real organisation would do it.
 
 ## What this is
 
-Two players race to climb as high as possible before time runs out, playing either on one keyboard or over the internet against a friend. Under the hood, the server is authoritative for all game-critical logic (positions, physics, timer, win conditions) — the client only renders and sends input, which is the same trust model any real-time networked application needs to defend against a modified or malicious client.
+Two players race to climb as high as possible before time runs out, playing either on one keyboard or over the internet against a friend. Under the hood, the server is authoritative for all game-critical logic (positions, physics, timer, win conditions); the client only renders and sends input, which is the same trust model any real-time networked application needs to defend against a modified or malicious client.
 
 ## Project structure
 
 ```
 skyclimb/
 ├── client/       # Browser game: HTML, CSS, and modular JS (rendering, input, physics)
-├── server/       # Node.js + Express + Socket.IO server — authoritative game state
+├── server/       # Node.js + Express + Socket.IO server, authoritative game state
 ├── docs/         # Architecture, risk, and threat-modelling documentation (SSDLC artifacts)
 ├── render.yaml   # One-click deploy blueprint for Render
 ├── README.md
@@ -32,11 +32,11 @@ Then open `http://localhost:3000` in a browser. Pick **Local** to play both play
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `ALLOWED_ORIGIN` | `*` | Restricts CORS / Socket.IO origin. Set this to your deployed client's domain in production (see Risk Register R5). |
+| `ALLOWED_ORIGIN` | `*` | Restricts CORS / Socket.IO origin. Should be set to the deployed client's domain in production (see Risk Register R5). |
 
 ## Notable behavior
 
-- **Reconnection:** if a player's connection drops mid-match, the match pauses (not ends) for up to 15 seconds while they reconnect. A reconnection token issued on join lets them reclaim their exact slot — position, height, and the timer all resume untouched. See Risk Register R3.
+- **Reconnection:** if a player's connection drops mid-match, the match pauses (not ends) for up to 15 seconds while they reconnect. A reconnection token issued on join lets them reclaim their exact slot: position, height, and the timer all resume untouched. See Risk Register R3.
 - **Logging:** connection and match events are logged to `server/logs/events.log` as newline-delimited JSON, in addition to the console. See Risk Register R8.
 
 ## Project plan
@@ -60,8 +60,8 @@ Everything below is a real artifact grounded in this specific codebase, not temp
 | [Security Decisions](docs/Security%20Decisions.md) | A log of decisions that deviated from the plan, and why — including two real production-crashing bugs fixed on the spot |
 | [Lessons Learned](docs/Lessons%20Learned.md) | What worked, what was harder than expected, what would change next time |
 
-
+Worth reading first if you're short on time: **Security Testing.md**, specifically the finding that a single malformed packet (`socket.emit('join', null)`) crashed the entire server. Found and fixed during a dedicated adversarial-testing phase that Phase 8's own verification testing never would have caught.
 
 ## License
 
-MIT — see `LICENSE`.
+MIT. See `LICENSE`.

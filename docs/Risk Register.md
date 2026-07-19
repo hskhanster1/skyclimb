@@ -1,8 +1,8 @@
 # Risk Register
 
-**Status:** Updated after Phase 8 (Secure Development) and Phase 11 (Deployment) — controls implemented and verified for R2–R4, R6, R8–R10; R5 verified live post-deployment; R7 remains an accepted risk
+**Status:** Updated after Phase 8 (Secure Development) and Phase 11 (Deployment). Controls implemented and verified for R2–R4, R6, R8–R10; R5 verified live post-deployment; R7 remains an accepted risk.
 **Scope:** `server/server.js` as of the Phase 2/3 networking implementation, plus findings from the Phase 7 STRIDE pass
-**Note:** R1–R7 came out of the initial Phase 5 pass. R8–R10 turned up specifically because STRIDE was applied systematically in Phase 7 — none of the three would have been caught just by asking "can the client cheat?" That's the main argument I have for doing a structured pass instead of trusting an ad hoc review to be enough.
+**Note:** R1–R7 came out of the initial Phase 5 pass. R8–R10 turned up specifically because STRIDE was applied systematically in Phase 7; none of the three would have been caught just by asking "can the client cheat?" That's the main argument I have for doing a structured pass instead of trusting an ad hoc review to be enough.
 
 | ID | Risk | Category | Likelihood | Impact | Rating | Current Mitigation | Recommended Action |
 |----|------|----------|------------|--------|--------|--------------------|---------------------|
@@ -23,9 +23,9 @@
 
 Recording this on purpose, because a risk register that only lists problems undersells the design decisions that were already made:
 
-- **Position, physics, collisions, timer, and score are 100% server-authoritative.** The client cannot spoof any of these regardless of what it sends over the socket (Phase 4 deliverable, verified in `updatePlayer()` and the state broadcast — the client never transmits its own position or score).
+- **Position, physics, collisions, timer, and score are 100% server-authoritative.** The client cannot spoof any of these regardless of what it sends over the socket (Phase 4 deliverable, verified in `updatePlayer()` and the state broadcast; the client never transmits its own position or score).
 - **No client-supplied state is ever trusted as fact.** The server only ever accepts three boolean-shaped inputs (`left`, `right`, `jump`) and computes everything else itself.
 
 ## Next steps
 
-Phases 7 (STRIDE), 8 (Secure Development), 9 (Security Testing), and 11 (Deployment) are complete. Of twelve identified risks: eleven are mitigated and verified (eight from Phase 8's own controls, two — R11 and R12 — found and fixed during Phase 9's adversarial testing, and R5 confirmed once `ALLOWED_ORIGIN` was set for the live deployment), and one (R7) is a deliberately accepted risk. See `Security Testing.md` for the full adversarial test methodology and results, and `Security Decisions.md` for SD-002/SD-003 covering why R11 and R12 were remediated immediately rather than deferred.
+Phases 7 (STRIDE), 8 (Secure Development), 9 (Security Testing), and 11 (Deployment) are complete. Of twelve identified risks: eleven are mitigated and verified (eight from Phase 8's own controls, two of them, R11 and R12, found and fixed during Phase 9's adversarial testing, and R5 confirmed once `ALLOWED_ORIGIN` was set for the live deployment), and one (R7) is a deliberately accepted risk. See `Security Testing.md` for the full adversarial test methodology and results, and `Security Decisions.md` for SD-002/SD-003 covering why R11 and R12 were remediated immediately rather than deferred.

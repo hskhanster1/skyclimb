@@ -282,6 +282,13 @@
       stage.focus();
     });
 
+    socket.on('matchRestarted', () => {
+      startOverlay.classList.add('hidden');
+      netCam1 = -HEIGHT * 0.62; netCam2 = -HEIGHT * 0.62;
+      smooth1 = null; smooth2 = null; // don't interpolate from the old match's last position
+      stage.focus();
+    });
+
     socket.on('state', (state) => {
       netState = state;
       if (state.gameEnded) showWinnerOnline(state);
@@ -320,9 +327,20 @@
   });
   stage.addEventListener('click', () => stage.focus());
 
+  function restartOnline() {
+    if (socket && socket.connected) {
+      // Still connected — reset the match in place, no disconnect involved.
+      socket.emit('restartMatch');
+    } else {
+      // Actually disconnected (e.g. after a dropped connection) — this is
+      // the one case where reconnecting via the saved token is correct.
+      connectToServer();
+    }
+  }
+
   restartBtn.addEventListener('click', () => {
     if (MODE === 'local') restartLocal();
-    else if (MODE === 'online') connectToServer();
+    else if (MODE === 'online') restartOnline();
   });
 
   window.addEventListener('keydown', (e) => {
@@ -331,7 +349,7 @@
 
     if (k === 'r' && !e.repeat) {
       if (MODE === 'local') restartLocal();
-      else if (MODE === 'online') connectToServer();
+      else if (MODE === 'online') restartOnline();
       return;
     }
 
@@ -340,10 +358,16 @@
       if (k === KEYMAP.p1.jump && !e.repeat) jumpQueued.p1 = true;
       if (k === KEYMAP.p2.jump && !e.repeat) jumpQueued.p2 = true;
     } else if (MODE === 'online') {
-      if (k === 'a' || k === 'arrowleft') onlineKeys.left = true;
-      if (k === 'd' || k === 'arrowright') onlineKeys.right = true;
-      if (k === 'w' || k === 'arrowup') onlineJump = true;
-      sendInput();
+      // Only send on the actual state change, not the browser's OS-level
+      // key-repeat firing — sending on every repeat could flood the rate
+      // limiter during normal held-key gameplay and cause a real jump/move
+      // input to be silently dropped along with the noise.
+      if (!e.repeat) {
+        if (k === 'a' || k === 'arrowleft') onlineKeys.left = true;
+        if (k === 'd' || k === 'arrowright') onlineKeys.right = true;
+        if (k === 'w' || k === 'arrowup') onlineJump = true;
+        sendInput();
+      }
     }
   });
 

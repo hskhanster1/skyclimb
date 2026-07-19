@@ -66,7 +66,7 @@ function makeLimiter(maxEvents, windowMs) {
     return state.count > maxEvents;
   };
 }
-const inputRateLimited = makeLimiter(40, 1000);  // generous headroom above real keyboard rates
+const inputRateLimited = makeLimiter(60, 1000);  // matches tick rate; repeat-key flood fixed client-side, this is now headroom not a crutch
 const joinRateLimited  = makeLimiter(5, 10000);
 
 // ---------- Game Constants (mirrored from client/js/constants.js) ----------
@@ -442,6 +442,37 @@ io.on('connection', (socket) => {
    } catch (err) {
      console.error('[input handler error]', err);
      logEvent('handler_error', { event: 'input', socketId: socket.id, error: err.message });
+   }
+  });
+
+  // An explicit, in-place restart, distinct from a reconnect. Clicking
+  // "Restart" mid-match previously tore the socket down and reconnected
+  // with the saved token, which the server correctly (but unhelpfully)
+  // interpreted as "resume my paused match," leaving players in the same
+  // spot with the same platforms. This resets the room directly instead,
+  // with no disconnect involved at all.
+  socket.on('restartMatch', () => {
+   try {
+    if (playerIndex === -1 || !currentRoom) return;
+    const room = rooms[currentRoom];
+    if (!room) return;
+
+    seedPattern(); // fresh, genuinely random layout — same fix as the pattern-seeding fix, applied per restart too
+    room.pattern = JSON.parse(JSON.stringify(pattern));
+    if (room.players[0]) room.players[0] = freshPlayer();
+    if (room.players[1]) room.players[1] = freshPlayer();
+    room.keys = [{ left: false, right: false }, { left: false, right: false }];
+    room.jumpQueued = [false, false];
+    room.timeLeft = room.timerDuration || 60;
+    room.gameEnded = false;
+    room.winner = null;
+    room.gameActive = room.players[0] !== null && room.players[1] !== null;
+
+    logEvent('match_restarted', { roomId: currentRoom, by: playerIndex });
+    io.to(currentRoom).emit('matchRestarted');
+   } catch (err) {
+     console.error('[restartMatch handler error]', err);
+     logEvent('handler_error', { event: 'restartMatch', socketId: socket.id, error: err.message });
    }
   });
 
