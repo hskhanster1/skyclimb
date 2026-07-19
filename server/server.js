@@ -158,7 +158,8 @@ function updatePlayer(p, keys, jumpQueued) {
     } else {
       let best = null;
       for (const plat of pattern) {
-        if (plat.y < prevFootY || plat.y > newFootY) continue;
+        // Add a 0.5px buffer to prevent floating point comparison failures (R13)
+        if (plat.y < prevFootY - 0.5 || plat.y > newFootY + 0.5) continue;
         const px = platformX(plat.frac);
         const overlapsX = p.x + PLAYER_W > px && p.x < px + PLATFORM_W;
         if (overlapsX) {
