@@ -12,6 +12,11 @@
   const timerSection = document.getElementById('timer-section');
   const controlsRow = document.getElementById('controls-row');
   const menuBtn = document.getElementById('menuBtn');
+  const touchControls = document.getElementById('touch-controls');
+  const touchLeft  = document.getElementById('touchLeft');
+  const touchRight = document.getElementById('touchRight');
+  const touchJump  = document.getElementById('touchJump');
+  const IS_TOUCH_DEVICE = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 
   const modeSelect   = document.getElementById('mode-select');
   const localModeBtn = document.getElementById('localModeBtn');
@@ -114,6 +119,7 @@
     roomStatusEl.textContent = '';
     statusEl.textContent = 'Not connected';
     statusEl.style.color = '';
+    touchControls.classList.add('hidden');
     modeSelect.classList.remove('hidden');
   }
   menuBtn.addEventListener('click', goToMenu);
@@ -127,6 +133,7 @@
     stage.classList.remove('hidden');
     localHints.forEach(el => el.classList.remove('hidden'));
     onlineHints.forEach(el => el.classList.add('hidden'));
+    touchControls.classList.add('hidden'); // local mode is shared-keyboard, not a fit for one phone
     startText.innerHTML = 'CLICK TO START<span>both players ready up on the same keyboard</span>';
     startOverlay.classList.remove('hidden');
     resize();
@@ -141,6 +148,7 @@
     stage.classList.remove('hidden');
     localHints.forEach(el => el.classList.add('hidden'));
     onlineHints.forEach(el => el.classList.remove('hidden'));
+    if (IS_TOUCH_DEVICE) touchControls.classList.remove('hidden');
     startText.innerHTML = 'ENTER A ROOM CODE<span>and hit Connect — share the code with your opponent</span>';
     startOverlay.classList.remove('hidden');
     resize();
@@ -233,6 +241,31 @@
       socket.emit('input', { left: onlineKeys.left, right: onlineKeys.right, jump: onlineJump });
     }
   }
+
+  // Touch controls set the exact same booleans the keyboard does, then call
+  // the same sendInput() — the server has never cared how the client
+  // decided to produce {left, right, jump}. Using pointer events (not touch
+  // events) so this also works fine with a mouse for desktop testing.
+  function bindTouchButton(el, onPress, onRelease) {
+    const press = (e) => { e.preventDefault(); onPress(); };
+    const release = (e) => { e.preventDefault(); onRelease(); };
+    el.addEventListener('pointerdown', press);
+    el.addEventListener('pointerup', release);
+    el.addEventListener('pointercancel', release);
+    el.addEventListener('pointerleave', release); // finger slid off while still touching
+  }
+
+  bindTouchButton(touchLeft,
+    () => { onlineKeys.left = true; sendInput(); },
+    () => { onlineKeys.left = false; sendInput(); });
+
+  bindTouchButton(touchRight,
+    () => { onlineKeys.right = true; sendInput(); },
+    () => { onlineKeys.right = false; sendInput(); });
+
+  bindTouchButton(touchJump,
+    () => { onlineJump = true; sendInput(); },
+    () => { onlineJump = false; sendInput(); });
 
   function connectToServer() {
     if (socket) { socket.disconnect(); socket = null; }

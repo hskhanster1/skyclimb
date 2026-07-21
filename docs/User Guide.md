@@ -33,6 +33,12 @@ Click **CLICK TO START** once both players are ready, then climb. Restart at any
 
 **Room codes aren't private lobbies.** Anyone with the code can join. Treat it like a shared password: pick something specific between you and whoever you're playing, not something guessable.
 
+### Mobile controls
+
+On a touch device, Online mode shows on-screen controls automatically: two arrow buttons in the bottom-left for movement, one larger jump button in the bottom-right. Same input as the keyboard underneath; nothing server-side treats a tap any differently from a keypress. Works with either thumb held down at once, so moving and jumping at the same time is fine.
+
+Local mode doesn't get touch controls. It's built around two people sharing one keyboard, which doesn't translate to one phone screen; play that mode on a desktop or laptop instead.
+
 ## Timer
 
 Choose 30 seconds, 60 seconds, or unlimited (∞) before a match starts. In timed modes, whoever's climbed higher when time runs out wins; equal height is a draw. Unlimited mode has no automatic winner; it's for casual/practice climbing, and a match only ends when someone hits Restart.

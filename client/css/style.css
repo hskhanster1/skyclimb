@@ -362,3 +362,58 @@ kbd {
 }
 #menuBtn:hover  { background: #3a2d6b; }
 #menuBtn:active { transform: translateY(1px); }
+
+/* ============================================================
+   Touch controls — shown only on touch devices in Online mode
+   ============================================================ */
+#touch-controls {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none; /* only the buttons themselves are tappable */
+}
+#touch-controls.hidden { display: none !important; }
+
+#touch-move {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  display: flex;
+  gap: 10px;
+}
+
+.touch-btn {
+  pointer-events: auto;
+  touch-action: none; /* stop scroll/zoom gestures from eating the tap */
+  -webkit-user-select: none;
+  user-select: none;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: rgba(44, 35, 80, 0.75);
+  border: 2px solid #6f57c9;
+  color: #eae6ff;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.touch-btn:active {
+  background: rgba(111, 87, 201, 0.85);
+  transform: scale(0.94);
+}
+
+.touch-jump {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 74px;
+  height: 74px;
+  font-size: 28px;
+  background: rgba(47, 184, 232, 0.25);
+  border-color: #4fd6ff;
+}
+.touch-jump:active {
+  background: rgba(79, 214, 255, 0.45);
+}

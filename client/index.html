@@ -48,6 +48,17 @@
     </div>
   </div>
 
+  <!-- Touch controls — shown only on touch devices in Online mode. Same
+       left/right/jump booleans as the keyboard, nothing server-side cares
+       how the client decided to send them. -->
+  <div id="touch-controls" class="hidden">
+    <div id="touch-move">
+      <button id="touchLeft" class="touch-btn" aria-label="Move left">◀</button>
+      <button id="touchRight" class="touch-btn" aria-label="Move right">▶</button>
+    </div>
+    <button id="touchJump" class="touch-btn touch-jump" aria-label="Jump">▲</button>
+  </div>
+
   <div id="start-overlay">
     <div id="start-text">CLICK TO START<span>both players ready up on the same keyboard</span></div>
   </div>
